@@ -24,7 +24,7 @@ def get_chat_history():
     return jsonify(rows)
 
 def stream_ollama(prompt):
-    timestamp = datetime.now().isoformat()
+    
     payload = {
         "model": MODEL,
         "prompt": prompt,
@@ -40,7 +40,8 @@ def stream_ollama(prompt):
                 if "response" in data:
                     full_response += data['response']
                     yield f"{data['response']}"
-
+                     
+        timestamp = datetime.now().isoformat()
         save_message(full_response, "bot", timestamp)          
 
 def save_message(message, sender, timestamp):
