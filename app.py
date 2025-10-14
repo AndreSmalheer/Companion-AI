@@ -79,4 +79,4 @@ def ollama():
     return Response(stream_ollama(context + user_input), mimetype="text/event-stream")
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
