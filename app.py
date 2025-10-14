@@ -13,14 +13,18 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
-@app.route("/get_chat_history")
-def get_chat_history():
+def fetch_chat_history():
     conn = sqlite3.connect("history.db")
-    conn.row_factory = sqlite3.Row  # makes rows act like dicts
+    conn.row_factory = sqlite3.Row  # rows act like dicts
     c = conn.cursor()
     c.execute("SELECT id, sender, message, timestamp FROM messages ORDER BY id ASC")
     rows = [dict(row) for row in c.fetchall()]
     conn.close()
+    return rows
+
+@app.route("/get_chat_history")
+def get_chat_history():
+    rows = fetch_chat_history()  # call the helper
     return jsonify(rows)
 
 def stream_ollama(prompt):
@@ -51,13 +55,28 @@ def save_message(message, sender, timestamp):
     conn.commit()
     conn.close()
 
+def generate_llm_context():
+    history = fetch_chat_history()
+
+    context = ""
+    for msg in history:
+        context += f"{msg['sender']}: {msg['message']}\n"
+
+    return context.strip()
 
 @app.route("/ollama", methods=["POST"])
 def ollama():
     data = request.get_json()
     user_input = data.get("text")
-    save_message(user_input, "user", datetime.now())
-    return Response(stream_ollama(user_input), mimetype="text/event-stream")
+
+    history = fetch_chat_history()
+    save_message(user_input, "user", datetime.now())    
+    
+    context = ""
+    for msg in history:
+        context += f"{msg['sender']}: {msg['message']}\n"
+    
+    return Response(stream_ollama(context + user_input), mimetype="text/event-stream")
 
 if __name__ == "__main__":
     app.run()
