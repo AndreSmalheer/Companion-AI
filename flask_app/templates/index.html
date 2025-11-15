@@ -12,9 +12,9 @@
   <script>
     document.addEventListener("visibilitychange", function () {
       if (document.hidden) {
-        console.log("Page is hidden (possibly minimized or switched tab)");
+        fetch("/show_overlay");
       } else {
-        console.log("Page is visible again");
+        fetch("/hide_overlay");
       }
     });
   </script>
