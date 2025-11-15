@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>AI GF Control</title>
+  </head>
+  <body>
+    <h1>AI Desktop Overlay Controller</h1>
+
+    <button onclick="fetch('/show_overlay')">Show Overlay</button>
+    <button onclick="fetch('/hide_overlay')">Hide Overlay</button>
+  </body>
+  <script>
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        console.log("Page is hidden (possibly minimized or switched tab)");
+      } else {
+        console.log("Page is visible again");
+      }
+    });
+  </script>
+</html>
