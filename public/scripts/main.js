@@ -12,11 +12,20 @@ import { loadVRM } from "./loaders/vrmLoader.js";
 import { loadAnimations } from "./animation/animationLoader.js";
 import { eyeTrackingEnabled } from "./config.js";
 
+// Try to get the script element
+const script = document.getElementById("main-script");
+
+let overlay = false;
+
+if (script && script.dataset && script.dataset.overlay !== undefined) {
+  overlay = script.dataset.overlay === "true";
+}
+
 // Config
 import { defaultModelUrl, animationUrls, audioUrl } from "./config.js";
 
 const { renderer, camera, controls, scene, light, lookAtTarget, clock } =
-  init();
+  init(overlay);
 
 const vrm = await loadVRM(defaultModelUrl, scene, lookAtTarget);
 

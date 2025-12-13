@@ -1,28 +1,50 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-export function init() {
+export function init(overlay) {
   // renderer
-  let renderer = new THREE.WebGLRenderer();
+  let renderer;
+
+  if (overlay) {
+    renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setClearColor(0x000000, 0);
+  } else {
+    renderer = new THREE.WebGLRenderer();
+    renderer.setClearColor(0xffffff, 1);
+  }
+
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setClearColor(0xffffff, 1);
   document.body.appendChild(renderer.domElement);
 
   // camera
-  let camera = new THREE.PerspectiveCamera(
-    30.0,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    20.0
-  );
-  camera.position.set(0.0, 1.0, 5.0);
+  let camera;
+  if (overlay) {
+    camera = new THREE.PerspectiveCamera(
+      13,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      20.0
+    );
+    camera.position.set(0.0, 1.2, 3.0);
+  } else {
+    camera = new THREE.PerspectiveCamera(
+      12.2,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      20.0
+    );
+    camera.position.set(0.0, 2, 5.0);
+  }
 
   // camera controls
-  let controls = new OrbitControls(camera, renderer.domElement);
-  controls.screenSpacePanning = true;
-  controls.target.set(0.0, 1.0, 0.0);
-  controls.update();
+  let controls;
+  if (!overlay) {
+    let controls = new OrbitControls(camera, renderer.domElement);
+    controls.screenSpacePanning = true;
+    controls.target.set(0.0, 1.0, 0.0);
+    controls.update();
+  }
 
   // scene
   let scene = new THREE.Scene();

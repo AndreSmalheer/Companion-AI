@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>three-vrm example</title>
+    <title>Ai Chat Prototype</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -42,6 +42,16 @@
 
   <body>
     <input type="text" class="styled-input" placeholder="Type something..." />
+
+    <script>
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+          fetch("/show_overlay");
+        } else {
+          fetch("/hide_overlay");
+        }
+      });
+    </script>
 
     <script type="importmap">
       {
