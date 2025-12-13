@@ -64,3 +64,9 @@ document.addEventListener("mouseout", () => {
   lookAtTarget.position.x = 0;
   lookAtTarget.position.y = 0;
 });
+
+window.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "q") {
+    console.log("Renderer shortcut triggered (Ctrl + Shift + q)");
+  }
+});

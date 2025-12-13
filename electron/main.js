@@ -1,7 +1,8 @@
-const { app, BrowserWindow, screen } = require("electron");
+const { app, BrowserWindow, screen, globalShortcut } = require("electron");
 const express = require("express");
 
 let overlayWindow;
+let showingOverlay = false;
 
 function createWindow() {
   const { width: screenWidth, height: screenHeight } =
@@ -30,17 +31,27 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
+app.whenReady().then(() => {
+  globalShortcut.register("CommandOrControl+Shift+Q", () => {
+    if (showingOverlay) {
+      console.log("Global shortcut pressed!");
+    }
+  });
+});
+
 // Electron API
 const api = express();
 const PORT = 8123;
 
 api.get("/show", (req, res) => {
   overlayWindow.show();
+  showingOverlay = true;
   res.send("shown");
 });
 
 api.get("/hide", (req, res) => {
   overlayWindow.hide();
+  showingOverlay = false;
   res.send("hidden");
 });
 
