@@ -1,5 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, Response
 import requests
+import time
+import json
+
 
 app = Flask(__name__, static_folder='public')
 ELECTRON_URL = "http://localhost:8123"
@@ -11,6 +14,25 @@ def home():
 @app.route('/overlay')
 def overlay():
     return render_template('overlay.html')
+
+
+def generate_fake_stream(prompt):
+    time.sleep(3)
+
+    fake_response = f"Simulated streaming Ollama response for: {prompt}"
+    for char in fake_response:
+
+        chunk = json.dumps({"text": char})  
+        yield f"data: {chunk}\n\n"
+        time.sleep(0.05)  
+
+    yield f"data: {json.dumps({'finish_reason': 'stop'})}\n\n"
+
+@app.route("/ollama_stream", methods=["POST"])
+def ollama_stream():
+    data = request.json
+    prompt = data.get("prompt", "")
+    return Response(generate_fake_stream(prompt), mimetype="text/event-stream")
 
 @app.route("/show_overlay")
 def show_overlay():

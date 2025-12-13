@@ -90,8 +90,69 @@
         }
       }
 
+      @keyframes fadeInStay {
+        0% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(10px) scale(0.95);
+          color: #555;
+        }
+        5% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0) scale(1);
+          color: #000;
+        }
+        100% {
+          opacity: 1; /* stay visible */
+          transform: translateX(-50%) translateY(0) scale(1);
+          color: #000;
+        }
+      }
+
+      @keyframes fadeOutAI {
+        0% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0) scale(1);
+          color: #000;
+        }
+        100% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-10px) scale(0.95);
+          color: #555;
+        }
+      }
+
+      @keyframes blinkDots {
+        0%,
+        20% {
+          content: "";
+        }
+        40% {
+          content: ".";
+        }
+        60% {
+          content: "..";
+        }
+        80%,
+        100% {
+          content: "...";
+        }
+      }
+
+      .loading::after {
+        content: "";
+        animation: blinkDots 1s steps(1, end) infinite;
+      }
+
       .animate-text {
         animation: fadeInOut 1.2s forwards;
+      }
+
+      .animate-text-ai {
+        animation: fadeInStay 1.2s forwards;
+      }
+
+      .animate-text-ai-fade-out {
+        animation: fadeOutAI 1.2s forwards;
       }
     </style>
   </head>
@@ -127,12 +188,67 @@
       const input = document.querySelector(".styled-input");
       const textSpan = document.getElementById("text_span");
 
+      async function streamOllamaResponse(prompt) {
+        textSpan.innerHTML = "Loading";
+        textSpan.classList.add("loading");
+
+        const response = await fetch("http://127.0.0.1:5000/ollama_stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        const textAnimationSpeed = 200;
+        let firstChunk = true;
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = JSON.parse(line.replace("data: ", ""));
+              if (data.finish_reason === "stop") continue;
+
+              if (firstChunk) {
+                textSpan.innerHTML = "";
+                textSpan.classList.remove("loading");
+                firstChunk = false;
+              }
+
+              for (const char of data.text) {
+                textSpan.innerHTML += char;
+                await new Promise((resolve) =>
+                  setTimeout(resolve, textAnimationSpeed)
+                );
+              }
+            }
+          }
+        }
+
+        // Fade out after delay
+        const fadeOutDelay = 1000;
+        textSpan.classList.remove("animate-text-ai-fade-out");
+        void textSpan.offsetWidth;
+
+        setTimeout(() => {
+          textSpan.classList.add("animate-text-ai-fade-out");
+        }, fadeOutDelay);
+      }
+
       if (input) {
-        input.addEventListener("keydown", function (event) {
+        input.addEventListener("keydown", async function (event) {
           if (event.key === "Enter") {
             const userText = input.value;
             input.value = "";
 
+            // Animate user text
             textSpan.innerHTML = userText;
             textSpan.classList.remove("animate-text");
             void textSpan.offsetWidth;
@@ -141,13 +257,15 @@
             function onUserAnimationEnd() {
               textSpan.removeEventListener("animationend", onUserAnimationEnd);
 
-              setTimeout(() => {
-                const aiResponse = "this is a test for the ai";
-
-                textSpan.innerHTML = aiResponse;
-                textSpan.classList.remove("animate-text");
+              setTimeout(async () => {
+                // Animate AI response container
+                textSpan.innerHTML = "";
+                textSpan.classList.remove("animate-text-ai");
                 void textSpan.offsetWidth;
-                textSpan.classList.add("animate-text");
+                textSpan.classList.add("animate-text-ai");
+
+                // Stream AI response
+                await streamOllamaResponse(userText);
               }, 1000);
             }
 
