@@ -11,21 +11,38 @@
     <style>
       body {
         margin: 0;
+        overflow: hidden;
       }
 
       canvas {
         display: block;
       }
 
-      #divInfo {
-        padding: 8px;
-        position: fixed;
-        background: white;
+      .styled-input {
+        box-sizing: border-box;
+        padding: 10px 15px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+        width: 250px;
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .styled-input:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
       }
     </style>
   </head>
 
   <body>
+    <input type="text" class="styled-input" placeholder="Type something..." />
+
     <script type="importmap">
       {
         "imports": {
@@ -38,28 +55,5 @@
     </script>
 
     <script type="module" src="../scripts/main.js"></script>
-
-    <!-- <script>
-      // mouse listener
-      window.addEventListener("mousemove", (event) => {
-        lookAtTarget.position.x =
-          10.0 *
-          ((event.clientX - 0.5 * window.innerWidth) / window.innerHeight);
-        lookAtTarget.position.y =
-          -10.0 *
-          ((event.clientY - 0.5 * window.innerHeight) / window.innerHeight);
-      });
-
-      document.addEventListener("mouseout", (event) => {
-        if (!event.relatedTarget && !event.toElement) {
-          lookAtTarget.position.x = 0;
-          lookAtTarget.position.y = 0;
-        }
-      });
-
-      document.addEventListener("click", () => {
-        playAudioWithLipSync(audioUrl, vrm);
-      });
-    </script> -->
   </body>
 </html>
