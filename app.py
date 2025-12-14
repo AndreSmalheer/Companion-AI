@@ -1,5 +1,13 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, Response, send_file
 import requests
+import time
+import json
+
+from gtts import gTTS
+import os
+import uuid
+
+
 
 app = Flask(__name__, static_folder='public')
 ELECTRON_URL = "http://localhost:8123"
@@ -11,6 +19,38 @@ def home():
 @app.route('/overlay')
 def overlay():
     return render_template('overlay.html')
+
+@app.route("/say")
+def say():
+    text = request.args.get("text")
+    if not text:
+        return "Please provide ?text=...", 400
+
+    filename = os.path.join(os.getcwd(), f"tts_{uuid.uuid4().hex}.mp3")
+    tts = gTTS(text=text, lang='en')
+    tts.save(filename)
+
+    return send_file(filename, mimetype="audio/mpeg")
+
+
+
+def generate_fake_stream(prompt):
+    time.sleep(3)
+
+    fake_response = f"Simulated streaming Ollama response for: {prompt}"
+    for char in fake_response:
+
+        chunk = json.dumps({"text": char})  
+        yield f"data: {chunk}\n\n"
+        time.sleep(0.05)  
+
+    yield f"data: {json.dumps({'finish_reason': 'stop'})}\n\n"
+
+@app.route("/ollama_stream", methods=["POST"])
+def ollama_stream():
+    data = request.json
+    prompt = data.get("prompt", "")
+    return Response(generate_fake_stream(prompt), mimetype="text/event-stream")
 
 @app.route("/show_overlay")
 def show_overlay():

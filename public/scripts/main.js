@@ -27,7 +27,7 @@ import { defaultModelUrl, animationUrls, audioUrl } from "./config.js";
 const { renderer, camera, controls, scene, light, lookAtTarget, clock } =
   init(overlay);
 
-const vrm = await loadVRM(defaultModelUrl, scene, lookAtTarget);
+window.vrm = await loadVRM(defaultModelUrl, scene, lookAtTarget);
 
 const currentMixer = new THREE.AnimationMixer(vrm.scene);
 
@@ -49,9 +49,9 @@ animate(
   lookAtTarget
 );
 
-document.addEventListener("click", () => {
-  playAudioWithLipSync(audioUrl, vrm);
-});
+// document.addEventListener("click", () => {
+//   playAudioWithLipSync(audioUrl, vrm);
+// });
 
 window.addEventListener("mousemove", (event) => {
   if (!eyeTrackingEnabled) return;
