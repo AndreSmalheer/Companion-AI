@@ -303,12 +303,25 @@
 
           console.log("Processing TTS:", nextInput);
 
-          // Simulate TTS playback duration (~50ms per character)
-          const simulatedDuration = Math.max(500, nextInput.length * 50);
-          setTimeout(() => {
+          const url = `http://127.0.0.1:5000/say?text=${encodeURIComponent(
+            nextInput
+          )}`;
+          const audio = new Audio(url);
+
+          audio.onended = () => {
             console.log("Finished TTS:", nextInput);
             playNext();
-          }, simulatedDuration);
+          };
+
+          audio.onerror = (err) => {
+            console.error("Error playing audio:", err);
+            playNext();
+          };
+
+          audio.play().catch((err) => {
+            console.error("Error starting audio playback:", err);
+            playNext();
+          });
         };
 
         return (input) => {

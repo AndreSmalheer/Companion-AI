@@ -1,7 +1,12 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, Response, send_file
 import requests
 import time
 import json
+
+from gtts import gTTS
+import os
+import uuid
+
 
 
 app = Flask(__name__, static_folder='public')
@@ -14,6 +19,19 @@ def home():
 @app.route('/overlay')
 def overlay():
     return render_template('overlay.html')
+
+@app.route("/say")
+def say():
+    text = request.args.get("text")
+    if not text:
+        return "Please provide ?text=...", 400
+
+    filename = os.path.join(os.getcwd(), f"tts_{uuid.uuid4().hex}.mp3")
+    tts = gTTS(text=text, lang='en')
+    tts.save(filename)
+
+    return send_file(filename, mimetype="audio/mpeg")
+
 
 
 def generate_fake_stream(prompt):
