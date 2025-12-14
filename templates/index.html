@@ -249,7 +249,9 @@
       }
     </script>
 
-    <script>
+    <script type="module">
+      import { playAudioWithLipSync } from "/public/scripts/lipSync/lipSync.js";
+
       const input = document.querySelector(".styled-input");
       const textSpan = document.getElementById("text_span");
       const chatSubmit = document.getElementById("chatSubmit");
@@ -306,20 +308,9 @@
           const url = `http://127.0.0.1:5000/say?text=${encodeURIComponent(
             nextInput
           )}`;
-          const audio = new Audio(url);
 
-          audio.onended = () => {
+          playAudioWithLipSync(url, window.vrm, () => {
             console.log("Finished TTS:", nextInput);
-            playNext();
-          };
-
-          audio.onerror = (err) => {
-            console.error("Error playing audio:", err);
-            playNext();
-          };
-
-          audio.play().catch((err) => {
-            console.error("Error starting audio playback:", err);
             playNext();
           });
         };
