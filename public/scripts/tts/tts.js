@@ -35,9 +35,7 @@ export const callTTS = (() => {
     try {
       const response = await fetch("http://127.0.0.1:5000/tts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "Example",
           infer_text: nextInput,
@@ -45,18 +43,27 @@ export const callTTS = (() => {
         }),
       });
 
-      const payload = await response.json();
-      const code = response.status;
-
       if (!response.ok) {
-        console.error("TTS request failed:", payload);
-        error_animate(payload);
-      } else {
-        console.log("TTS request succeeded for:", nextInput, payload);
+        const text = await response.text();
+        console.error("TTS request failed:", text);
+        error_animate([text]);
         playNext();
+        return;
       }
+
+      // Convert the response to a blob (audio)
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Create an audio element and play it
+      const audio = new Audio(audioUrl);
+      audio.onended = () => {
+        playNext(); // play the next in queue when done
+      };
+      audio.play();
     } catch (err) {
       console.error("Error calling TTS:", err);
+      playNext();
     }
   };
 

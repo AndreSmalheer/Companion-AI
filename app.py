@@ -15,10 +15,10 @@ GPT_SOVITS_URL = "http://127.0.0.1:9880"
 
 
 def validate_tts_request(data):
-    # try:
-    #     r = requests.get(GPT_SOVITS_URL, timeout=2)
-    # except requests.exceptions.RequestException:
-    #     return ["Gpt Sovits is not running"], 503
+    try:
+        r = requests.get(GPT_SOVITS_URL, timeout=2)
+    except requests.exceptions.RequestException:
+        return ["Gpt Sovits is not running"], 503
 
     if not isinstance(data, dict):
      return {"errors": ["Request body must be JSON"]}, 400
@@ -37,7 +37,7 @@ def validate_tts_request(data):
     split_bucket =        data.get("split_bucket", True)                  # (optional) bool: whether to split the batch into multiple buckets  
            
     speed_factor =        float(data.get("speed_factor", 1.0))            # (optional) float: control the speed of the synthesized audio  
-    streaming_mode =      data.get("streaming_mode", True)               # (optional) bool or int: return audio chunk by chunk the available options are: 0,1,2,3 or True/False (0/False: Disabled | 1/True: Best Quality, Slowest response speed (old version streaming_mode) | 2: Medium Quality, Slow response speed | 3: Lower Quality, Faster response speed )  
+    streaming_mode =      data.get("streaming_mode", False  )             # (optional) bool or int: return audio chunk by chunk the available options are: 0,1,2,3 or True/False (0/False: Disabled | 1/True: Best Quality, Slowest response speed (old version streaming_mode) | 2: Medium Quality, Slow response speed | 3: Lower Quality, Faster response speed )  
     fragment_interval =   float(data.get("fragment_interval", 0.3))       # (optional) float. to control the interval of the audio fragment.
     seed =                data.get("seed", -1)                            # (optional) int: random seed for reproducibility  
     parallel_infer =      data.get("parallel_infer", True)                # (optional) bool: whether to use parallel inference  
@@ -206,11 +206,20 @@ def tts():
     streaming_mode =  payload.get("streaming_mode")
 
     if streaming_mode:
-        print("streaming tts")
-
-        return jsonify(payload), status
+        return jsonify("streaming mode not supported"), 400
     
-    return jsonify(payload), status
+    try:
+        r = requests.post(f"{GPT_SOVITS_URL}/tts", json=payload, timeout=120)
+        r.raise_for_status()
+        
+        filename = f"debug_output_{uuid.uuid4().hex}.wav"
+        with open(filename, "wb") as f:
+            f.write(r.content)
+        
+        return send_file(filename, mimetype="audio/mpeg")
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}, 502
+    
 
 
 @app.route('/')
