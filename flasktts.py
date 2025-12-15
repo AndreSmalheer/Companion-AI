@@ -11,7 +11,7 @@ HTML_PAGE = """
 <head><title>Streaming TTS Demo</title></head>
 <body>
 <h2>Streaming TTS Demo</h2>
-<textarea id="ttsText" rows="3" cols="50">Hello, streaming test!</textarea><br><br>
+<textarea id="ttsText" rows="3" cols="50">As the sun dipped below the horizon, painting the sky in shades of gold and crimson, she stood silently at the edge of the cliff, feeling the wind whip through her hair, and wondered how many more sunsets she would witness before the world changed forever.</textarea><br><br>
 <button onclick="startTTS()" id="speakBtn">Speak (Stream)</button>
 <button onclick="saveToFile()">Save to File (Debug)</button>
 <p id="status"></p>
@@ -22,54 +22,25 @@ let audioContext = null;
 let nextStartTime = 0;
 let isPlaying = false;
 let audioBuffer = [];
-let isBuffering = true;
-let bufferThreshold = 462144; // 96KB initial buffer (3 seconds at 32kHz)
-let minBufferChunks = 40; // Minimum 12 chunks before starting
-let totalBuffered = 0;
 let hasStartedPlaying = false;
-
-async function saveToFile() {
-    const text = document.getElementById("ttsText").value;
-    const statusEl = document.getElementById("status");
-    
-    statusEl.textContent = "Saving...";
-    
-    try {
-        const response = await fetch('/save_tts', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: text})
-        });
-        
-        const result = await response.json();
-        statusEl.textContent = result.message || result.error;
-    } catch (error) {
-        statusEl.textContent = `Error: ${error.message}`;
-    }
-}
+const BUFFER_CHUNKS_THRESHOLD = 100; // number of chunks to buffer before starting playback
 
 async function startTTS() {
     if (isPlaying) return;
-    
+
     const text = document.getElementById("ttsText").value;
     const statusEl = document.getElementById("status");
     const bufferStatusEl = document.getElementById("bufferStatus");
     const btn = document.getElementById("speakBtn");
-    
+
     btn.disabled = true;
     isPlaying = true;
-    isBuffering = true;
     hasStartedPlaying = false;
     audioBuffer = [];
-    totalBuffered = 0;
     statusEl.textContent = "Connecting...";
-    bufferStatusEl.textContent = "Buffering: 0% (waiting for more data...)";
+    bufferStatusEl.textContent = "Buffering...";
 
-    // Initialize AudioContext on user interaction
-    if (!audioContext) {
-        audioContext = new AudioContext();
-    }
-    
+    if (!audioContext) audioContext = new AudioContext();
     nextStartTime = audioContext.currentTime;
 
     try {
@@ -79,190 +50,108 @@ async function startTTS() {
             body: JSON.stringify({text: text, model: "Example"})
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
 
         const reader = response.body.getReader();
         let receivedData = new Uint8Array(0);
         let headerParsed = false;
         let sampleRate = 32000;
         let channels = 1;
-        let bitsPerSample = 16;
-        let dataStartOffset = 0;
+        let dataStartOffset = 44;
 
-        statusEl.textContent = "Buffering...";
-
-        // Start playback processor with adaptive buffer management
         const playbackInterval = setInterval(() => {
-            // Check if we need to rebuffer
-            if (hasStartedPlaying && audioBuffer.length < 3 && isPlaying && !done) {
-                if (!isBuffering) {
-                    console.log('Buffer running low, pausing to rebuffer...');
-                    isBuffering = true;
-                    statusEl.textContent = "Rebuffering...";
+            // Only start playback if buffer has enough chunks
+            if (audioBuffer.length >= BUFFER_CHUNKS_THRESHOLD || hasStartedPlaying) {
+                if (audioBuffer.length > 0) {
+                    const chunk = audioBuffer.shift();
+                    playAudioChunk(chunk, sampleRate, channels);
+                    bufferStatusEl.textContent = `Buffer: ${audioBuffer.length} chunks`;
+                    if (!hasStartedPlaying) {
+                        hasStartedPlaying = true;
+                        statusEl.textContent = "Playing...";
+                    }
                 }
+            } else {
+                bufferStatusEl.textContent = `Buffering... (${audioBuffer.length}/${BUFFER_CHUNKS_THRESHOLD})`;
             }
-            
-            // Play chunks if not buffering and buffer has data
-            if (!isBuffering && audioBuffer.length > 0) {
-                const chunk = audioBuffer.shift();
-                playAudioChunk(chunk, sampleRate, channels);
-                
-                // Update buffer status
-                bufferStatusEl.textContent = `Playing - Buffer: ${audioBuffer.length} chunks`;
-            }
-            
-            if (!isPlaying && audioBuffer.length === 0) {
-                clearInterval(playbackInterval);
-            }
-        }, 50); // Check every 50ms for smooth playback
-
-        let done = false;
+        }, 50);
 
         while (true) {
-            const {done: streamDone, value} = await reader.read();
-            done = streamDone;
-            
-            if (value) {
-                // Concatenate chunks
-                const tmp = new Uint8Array(receivedData.length + value.length);
-                tmp.set(receivedData);
-                tmp.set(value, receivedData.length);
-                receivedData = tmp;
+            const {done, value} = await reader.read();
+            if (done) break;
 
-                // Parse WAV header from first chunk
-                if (!headerParsed && receivedData.length >= 44) {
-                    const view = new DataView(receivedData.buffer);
-                    
-                    // Verify RIFF header
-                    const riff = String.fromCharCode(...receivedData.slice(0, 4));
-                    if (riff !== 'RIFF') {
-                        console.error('Invalid WAV header');
-                        break;
-                    }
-                    
-                    const audioFormat = view.getUint16(20, true);
-                    channels = view.getUint16(22, true);
-                    sampleRate = view.getUint32(24, true);
-                    bitsPerSample = view.getUint16(34, true);
-                    dataStartOffset = 44;
-                    headerParsed = true;
-                    
-                    console.log(`WAV format: ${sampleRate}Hz, ${channels} ch, ${bitsPerSample}-bit, format=${audioFormat}`);
-                }
+            const tmp = new Uint8Array(receivedData.length + value.length);
+            tmp.set(receivedData);
+            tmp.set(value, receivedData.length);
+            receivedData = tmp;
 
-                // Process audio data after header
-                if (headerParsed && receivedData.length > dataStartOffset) {
-                    const audioData = receivedData.slice(dataStartOffset);
-                    totalBuffered += value.length;
-                    
-                    // Update buffer status
-                    if (isBuffering) {
-                        const bufferPercent = Math.min(100, Math.floor((totalBuffered / bufferThreshold) * 100));
-                        bufferStatusEl.textContent = `Buffering: ${bufferPercent}%`;
-                    }
-                    
-                    // Process in chunks
-                    const CHUNK_SIZE = 8192;
-                    if (audioData.length >= CHUNK_SIZE) {
-                        const chunkToBuffer = audioData.slice(0, CHUNK_SIZE);
-                        audioBuffer.push(chunkToBuffer);
-                        
-                        // Start playback once buffer threshold is reached
-                        if (isBuffering && totalBuffered >= bufferThreshold) {
-                            isBuffering = false;
-                            statusEl.textContent = "Playing...";
-                            bufferStatusEl.textContent = `Buffer: ${audioBuffer.length} chunks`;
-                            console.log('Buffer filled, starting playback');
-                        }
-                        
-                        // Keep remaining data + header
-                        receivedData = new Uint8Array(44 + (audioData.length - CHUNK_SIZE));
-                        receivedData.set(receivedData.slice(0, 44));
-                        receivedData.set(audioData.slice(CHUNK_SIZE), 44);
-                        dataStartOffset = 44;
-                    }
-                    
-                    // Update buffer status during playback
-                    if (!isBuffering) {
-                        bufferStatusEl.textContent = `Buffer: ${audioBuffer.length} chunks`;
-                    }
-                }
+            if (!headerParsed && receivedData.length >= 44) {
+                const view = new DataView(receivedData.buffer);
+                const riff = String.fromCharCode(...receivedData.slice(0, 4));
+                if (riff !== 'RIFF') throw new Error('Invalid WAV header');
+                channels = view.getUint16(22, true);
+                sampleRate = view.getUint32(24, true);
+                headerParsed = true;
+                console.log(`WAV format: ${sampleRate}Hz, ${channels}ch`);
             }
 
-            if (done) {
-                // Add any remaining audio to buffer
-                if (headerParsed && receivedData.length > dataStartOffset) {
-                    const remaining = receivedData.slice(dataStartOffset);
-                    if (remaining.length > 0) {
-                        audioBuffer.push(remaining);
-                    }
-                }
-                
-                // If we never started playing (small audio or very slow), start now with whatever we have
-                if (isBuffering && audioBuffer.length > 0) {
-                    isBuffering = false;
-                    hasStartedPlaying = true;
-                    statusEl.textContent = "Playing...";
-                    console.log(`Stream ended with ${audioBuffer.length} chunks, starting playback`);
-                }
-                
-                break;
+            if (headerParsed && receivedData.length > dataStartOffset) {
+                const audioData = receivedData.slice(dataStartOffset);
+                if (audioData.length > 0) audioBuffer.push(audioData);
+                receivedData = new Uint8Array(44);
+                dataStartOffset = 44;
             }
         }
 
-        statusEl.textContent = "Stream complete, finishing playback...";
-        
-        // Wait for buffer to empty
-        const waitForBufferEmpty = setInterval(() => {
+        // Final leftover
+        if (headerParsed && receivedData.length > dataStartOffset) {
+            audioBuffer.push(receivedData.slice(dataStartOffset));
+        }
+
+        // Wait for playback to finish
+        const waitForEnd = setInterval(() => {
             if (audioBuffer.length === 0 && nextStartTime <= audioContext.currentTime) {
-                clearInterval(waitForBufferEmpty);
+                clearInterval(waitForEnd);
+                clearInterval(playbackInterval);
                 statusEl.textContent = "Complete!";
                 bufferStatusEl.textContent = "";
                 btn.disabled = false;
                 isPlaying = false;
             }
         }, 100);
-        
-    } catch (error) {
-        statusEl.textContent = `Error: ${error.message}`;
+
+    } catch (err) {
+        console.error(err);
+        statusEl.textContent = `Error: ${err.message}`;
         bufferStatusEl.textContent = "";
-        console.error('Streaming error:', error);
         btn.disabled = false;
         isPlaying = false;
     }
 }
 
 function playAudioChunk(pcmData, sampleRate, channels) {
-    // Convert Int16 PCM to Float32 using DataView for proper little-endian reading
     const samples = pcmData.length / 2;
     const float32Data = new Float32Array(samples);
     const view = new DataView(pcmData.buffer, pcmData.byteOffset, pcmData.byteLength);
-    
+
     for (let i = 0; i < samples; i++) {
-        // Read as little-endian signed int16
-        const int16 = view.getInt16(i * 2, true);
-        float32Data[i] = int16 / 32768.0;
+        float32Data[i] = view.getInt16(i * 2, true) / 32768.0;
     }
 
-    // Create audio buffer
-    const audioBuffer = audioContext.createBuffer(channels, samples, sampleRate);
-    audioBuffer.getChannelData(0).set(float32Data);
+    const audioBuf = audioContext.createBuffer(channels, samples, sampleRate);
+    audioBuf.getChannelData(0).set(float32Data);
 
-    // Schedule playback
     const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
+    source.buffer = audioBuf;
     source.connect(audioContext.destination);
-    
-    // Schedule at next available time for seamless playback
+
     const startTime = Math.max(nextStartTime, audioContext.currentTime);
     source.start(startTime);
-    
-    // Update next start time
-    nextStartTime = startTime + audioBuffer.duration;
+    nextStartTime = startTime + audioBuf.duration;
 }
+
 </script>
+
 </body>
 </html>
 """
