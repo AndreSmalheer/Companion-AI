@@ -1,6 +1,5 @@
 {
   "ELECTRON_URL": "http://localhost:8123",
-  "GPT_SOVITS_URL": "http://127.0.0.1:9880",
   "WSL_HOME": "/home/andre",
   "PIPER_PATH": "/home/andre/piper/piper",
   "VOICE_MODEL": "/home/andre/en_US-amy-medium.onnx",

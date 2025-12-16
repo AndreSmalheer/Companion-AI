@@ -23,7 +23,6 @@ export const callTTS = (() => {
 
     while (audioQueue.length < MIN_BUFFER && textQueue.length > 0) {
       const text = textQueue.shift();
-      // console.log("Generating TTS audio for:", text);
 
       const ttsUrl = `http://127.0.0.1:5000/say?text=${encodeURIComponent(
         text
@@ -32,32 +31,19 @@ export const callTTS = (() => {
       try {
         const resp = await fetch(ttsUrl);
         if (!resp.ok) {
-          console.error(
-            `TTS endpoint error for "${text}":`,
-            resp.status,
-            resp.statusText
-          );
+          show_error(`TTS failed for: "${text}"`);
           continue;
         }
-
-        const filename = resp.headers.get("X-TTS-Filename") || null;
 
         const blob = await resp.blob();
         const blobUrl = URL.createObjectURL(blob);
 
-        audioQueue.push({ text, url: blobUrl, filename });
-
-        // console.log(
-        //   "Generated and queued audio for:",
-        //   text,
-        //   filename ? `as ${filename}` : `(no filename header)`
-        // );
-
+        audioQueue.push({ text, url: blobUrl });
         if (shouldStartAfterFirst && audioQueue.length > 0) {
           playNext();
         }
       } catch (err) {
-        console.error("Error fetching TTS audio for:", text, err);
+        show_error(`Problem generating audio for: "${text}"`);
       }
     }
 
@@ -91,10 +77,7 @@ export const callTTS = (() => {
     const { text, url, filename } = audioQueue.shift();
 
     if (!url) {
-      console.error("No audio URL found for queue item, skipping:", {
-        text,
-        filename,
-      });
+      show_error(`Audio missing for: "${text}"`);
       setTimeout(playNext, 0);
       return;
     }

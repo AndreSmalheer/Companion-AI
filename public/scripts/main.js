@@ -10,6 +10,7 @@ import { animate } from "./animation/animationLoop.js";
 import { playAudioWithLipSync } from "./lipSync/lipSync.js";
 import { loadVRM } from "./loaders/vrmLoader.js";
 import { loadAnimations } from "./animation/animationLoader.js";
+import { show_error } from "./errors.js";
 // Try to get the script element
 const script = document.getElementById("main-script");
 
@@ -29,7 +30,15 @@ const eyeTrackingEnabled = config.eyeTrackingEnabled;
 const { renderer, camera, controls, scene, light, lookAtTarget, clock } =
   init(overlay);
 
-window.vrm = await loadVRM(defaultModelUrl, scene, lookAtTarget);
+try {
+  window.vrm = await loadVRM(defaultModelUrl, scene, lookAtTarget);
+  // console.log("VRM model loaded successfully!");
+} catch (error) {
+  console.error("Failed to load VRM model:", error);
+  show_error(
+    "Failed to load VRM model. Please check the file path or network."
+  );
+}
 
 const currentMixer = new THREE.AnimationMixer(vrm.scene);
 

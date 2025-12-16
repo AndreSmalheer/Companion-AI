@@ -17,7 +17,6 @@ with open("config.json") as f:
     config = json.load(f)
 
 ELECTRON_URL = config["ELECTRON_URL"]
-GPT_SOVITS_URL = config["GPT_SOVITS_URL"]
 PIPER_PATH = config["PIPER_PATH"]
 VOICE_MODEL = config["VOICE_MODEL"]
 
