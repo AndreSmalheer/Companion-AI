@@ -21,7 +21,7 @@ export const callTTS = (() => {
 
     while (audioQueue.length < MIN_BUFFER && textQueue.length > 0) {
       const text = textQueue.shift();
-      console.log("Generating TTS audio for:", text);
+      // console.log("Generating TTS audio for:", text);
 
       const ttsUrl = `http://127.0.0.1:5000/say?text=${encodeURIComponent(
         text
@@ -45,11 +45,11 @@ export const callTTS = (() => {
 
         audioQueue.push({ text, url: blobUrl, filename });
 
-        console.log(
-          "Generated and queued audio for:",
-          text,
-          filename ? `as ${filename}` : `(no filename header)`
-        );
+        // console.log(
+        //   "Generated and queued audio for:",
+        //   text,
+        //   filename ? `as ${filename}` : `(no filename header)`
+        // );
 
         if (shouldStartAfterFirst && audioQueue.length > 0) {
           playNext();
@@ -100,10 +100,10 @@ export const callTTS = (() => {
     const displayName = filename || url;
     playedAudioLog.push(displayName);
 
-    console.log("Playing TTS:", text, "-", displayName);
+    // console.log("Playing TTS:", text, "-", displayName);
 
     playAudioWithLipSync(url, window.vrm, () => {
-      console.log("Finished TTS:", text, "-", displayName);
+      // console.log("Finished TTS:", text, "-", displayName);
 
       try {
         URL.revokeObjectURL(url);

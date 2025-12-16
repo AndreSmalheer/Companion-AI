@@ -14,7 +14,9 @@ app = Flask(__name__, static_folder='public')
 ELECTRON_URL = "http://localhost:8123"
 GPT_SOVITS_URL = "http://127.0.0.1:9880"
 TTS_DIR = Path(os.getcwd()) / "public/assets/tts"
-
+WSL_HOME = "/home/andre"
+PIPER_PATH = f"{WSL_HOME}/piper/piper"
+VOICE_MODEL = f"{WSL_HOME}/en_US-amy-medium.onnx"
 
 @app.route('/')
 def home():
@@ -24,51 +26,62 @@ def home():
 def overlay():
     return render_template('overlay.html')
 
+from flask import Flask, request, send_file
+from pathlib import Path
+import subprocess, uuid, os
+
+app = Flask(__name__)
+
 @app.route("/say")
 def say():
     text = request.args.get("text")
     if not text:
         return "Please provide ?text=...", 400
 
-    # Output folder (Windows-side)
-    output_dir = Path(os.getcwd()) / "public/assets/tts"
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    output_file = output_dir / f"tts_{uuid.uuid4().hex}.wav"
-
-    # Convert Windows path → WSL path
-    drive = output_file.drive[0].lower()
-    wsl_output_file = f"/mnt/{drive}{output_file.as_posix()[2:]}"
-
-    # Piper config (WSL)
-    wsl_home = "/home/andre"
-    piper_path = f"{wsl_home}/piper/piper"
-    voice_model = f"{wsl_home}/en_US-amy-medium.onnx"
-
     try:
+        output_dir = Path(os.getcwd()) / "public/assets/tts"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        output_file = output_dir / f"tts_{uuid.uuid4().hex}.wav"
+
+        drive = output_file.drive[0].lower()
+        wsl_output_file = f"/mnt/{drive}{output_file.as_posix()[2:]}"
+
+
+
+        if not Path(PIPER_PATH).exists():
+            return f"Piper executable not found at {PIPER_PATH}", 500
+        if not Path(VOICE_MODEL).exists():
+            return f"Voice model not found at {VOICE_MODEL}", 500
+        
         subprocess.run(
             [
                 "wsl",
-                piper_path,
-                "--model", voice_model,
+                PIPER_PATH,
+                "--model", VOICE_MODEL,
                 "--output_file", wsl_output_file
             ],
             input=text.encode("utf-8"),
             check=True
         )
+
+        response = send_file(
+            output_file,
+            mimetype="audio/wav",
+            as_attachment=False
+        )
+        response.headers["X-TTS-Filename"] = output_file.name
+        return response, 200 
+
     except subprocess.CalledProcessError as e:
         return f"Piper TTS failed: {e}", 500
-    
+    except PermissionError:
+        return "Permission denied while creating output directory or file", 500
+    except FileNotFoundError as e:
+        return f"File not found: {e}", 500
+    except Exception as e:
+        return f"Unexpected error: {e}", 500
 
-    response = send_file(
-        output_file,
-        mimetype="audio/wav",
-        as_attachment=False
-    )
-
-    response.headers["X-TTS-Filename"] = output_file.name
-
-    return response
 
 
 @app.route("/delete_tts", methods=["POST"])
