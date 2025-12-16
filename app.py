@@ -6,6 +6,8 @@ import json
 from gtts import gTTS
 import os
 import uuid
+import subprocess
+from pathlib import Path
 
 
 
@@ -230,18 +232,61 @@ def home():
 def overlay():
     return render_template('overlay.html')
 
+# @app.route("/say")
+# def say():
+#     text = request.args.get("text")
+#     if not text:
+#         return "Please provide ?text=...", 400
+
+
+#     filename = os.path.join(os.getcwd(),  "public/assets/tts",  f"tts_{uuid.uuid4().hex}.mp3")
+#     tts = gTTS(text=text, lang='en')
+#     tts.save(filename)
+
+#     return send_file(filename, mimetype="audio/mpeg")
+
+
+
 @app.route("/say")
 def say():
     text = request.args.get("text")
     if not text:
         return "Please provide ?text=...", 400
 
+    # Output folder (Windows-side)
+    output_dir = Path(os.getcwd()) / "public/assets/tts"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    filename = os.path.join(os.getcwd(),  "public/assets/tts",  f"tts_{uuid.uuid4().hex}.mp3")
-    tts = gTTS(text=text, lang='en')
-    tts.save(filename)
+    output_file = output_dir / f"tts_{uuid.uuid4().hex}.wav"
 
-    return send_file(filename, mimetype="audio/mpeg")
+    # Convert Windows path → WSL path
+    drive = output_file.drive[0].lower()
+    wsl_output_file = f"/mnt/{drive}{output_file.as_posix()[2:]}"
+
+    # Piper config (WSL)
+    wsl_home = "/home/andre"
+    piper_path = f"{wsl_home}/piper/piper"
+    voice_model = f"{wsl_home}/en_US-amy-medium.onnx"
+
+    try:
+        subprocess.run(
+            [
+                "wsl",
+                piper_path,
+                "--model", voice_model,
+                "--output_file", wsl_output_file
+            ],
+            input=text.encode("utf-8"),
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+        return f"Piper TTS failed: {e}", 500
+
+    return send_file(
+        output_file,
+        mimetype="audio/wav",
+        as_attachment=False
+    )
 
 
 
