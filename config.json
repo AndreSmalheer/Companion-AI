@@ -18,7 +18,8 @@
     "maxAnimationInterval": 3
   },
   "ollama": {
-    "ollamaUrl": "",
+    "ollamaUrl": "http://localhost:11434",
+    "ollamaModel": "gemma3:4b",
     "ttsChunkThreshold": 10,
     "debug": true
   },
