@@ -1,7 +1,8 @@
-let isBlinking = false;
-let nextBlinkTime = 0;
+import { configPromise } from "../config.js";
+const config = await configPromise;
+let { nextBlinkTime, blinkDuration } = config.blink;
 let blinkStartTime = 0;
-let blinkDuration = 0.1;
+let isBlinking = false;
 
 export function updateBlink(vrm, clock) {
   if (!vrm) return;

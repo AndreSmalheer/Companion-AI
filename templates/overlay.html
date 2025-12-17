@@ -8,24 +8,63 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+
     <style>
       body {
-        margin: 0;
-        overflow: hidden;
+        width: auto !important;
+        height: 600px !important;
+        position: absolute;
+        right: -200px;
+        bottom: 0;
+        margin-right: 0;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      #chatSubmit,
+      .styled-input {
+        pointer-events: auto !important;
       }
 
       canvas {
-        position: absolute;
-        bottom: 0;
-        right: -250px;
         width: auto !important;
         height: 600px !important;
-        display: block !important;
+        z-index: -9999;
       }
     </style>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css') }}"
+    />
   </head>
+  <div class="canvas-wrap"></div>
 
   <body>
+    <input
+      type="text"
+      class="styled-input hidden interactive"
+      placeholder="Type something..."
+    />
+
+    <div id="chatSubmit" class="hidden interactive">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="white"
+        viewBox="0 0 24 24"
+      >
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+      </svg>
+    </div>
+
+    <div id="text_container">
+      <span id="text_span"></span>
+    </div>
+
+    <div id="ollama-text-debug"></div>
+
     <script type="importmap">
       {
         "imports": {
@@ -44,4 +83,35 @@
       data-overlay="true"
     ></script>
   </body>
+
+  <script>
+    const { ipcRenderer } = require("electron");
+
+    ipcRenderer.on("toggle-visibility", () => {
+      const input = document.querySelector(".styled-input");
+      const chatSubmit = document.getElementById("chatSubmit");
+
+      input.classList.toggle("hidden");
+      chatSubmit.classList.toggle("hidden");
+
+      if (!input.classList.contains("hidden")) {
+        input.focus();
+      }
+    });
+
+    // Get all interactive elements
+    const interactiveElements = document.querySelectorAll(".interactive");
+
+    interactiveElements.forEach((element) => {
+      element.addEventListener("mouseenter", () => {
+        // Allow mouse events when hovering over buttons
+        ipcRenderer.send("set-ignore-mouse-events", false);
+      });
+
+      element.addEventListener("mouseleave", () => {
+        // Ignore mouse events when leaving buttons
+        ipcRenderer.send("set-ignore-mouse-events", true, { forward: true });
+      });
+    });
+  </script>
 </html>

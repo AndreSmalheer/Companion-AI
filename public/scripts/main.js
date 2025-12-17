@@ -10,8 +10,7 @@ import { animate } from "./animation/animationLoop.js";
 import { playAudioWithLipSync } from "./lipSync/lipSync.js";
 import { loadVRM } from "./loaders/vrmLoader.js";
 import { loadAnimations } from "./animation/animationLoader.js";
-import { eyeTrackingEnabled } from "./config.js";
-
+import { show_error } from "./errors.js";
 // Try to get the script element
 const script = document.getElementById("main-script");
 
@@ -22,12 +21,24 @@ if (script && script.dataset && script.dataset.overlay !== undefined) {
 }
 
 // Config
-import { defaultModelUrl, animationUrls, audioUrl } from "./config.js";
+import { configPromise } from "./config.js";
+const config = await configPromise;
+const defaultModelUrl = config.defaultModelUrl;
+const animationUrls = config.animationUrls;
+const eyeTrackingEnabled = config.eyeTrackingEnabled;
 
 const { renderer, camera, controls, scene, light, lookAtTarget, clock } =
   init(overlay);
 
-window.vrm = await loadVRM(defaultModelUrl, scene, lookAtTarget);
+try {
+  window.vrm = await loadVRM(defaultModelUrl, scene, lookAtTarget);
+  // console.log("VRM model loaded successfully!");
+} catch (error) {
+  console.error("Failed to load VRM model:", error);
+  show_error(
+    "Failed to load VRM model. Please check the file path or network."
+  );
+}
 
 const currentMixer = new THREE.AnimationMixer(vrm.scene);
 
@@ -49,10 +60,6 @@ animate(
   lookAtTarget
 );
 
-// document.addEventListener("click", () => {
-//   playAudioWithLipSync(audioUrl, vrm);
-// });
-
 window.addEventListener("mousemove", (event) => {
   if (!eyeTrackingEnabled) return;
   lookAtTarget.position.x = 10 * (event.clientX / window.innerWidth - 0.5);
@@ -65,8 +72,45 @@ document.addEventListener("mouseout", () => {
   lookAtTarget.position.y = 0;
 });
 
-window.addEventListener("keydown", (e) => {
-  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "q") {
-    console.log("Renderer shortcut triggered (Ctrl + Shift + q)");
+import { streamOllamaResponse } from "./api/ollama.js";
+import { showTextChunk } from "./text-animations/textAnimator.js";
+
+const input = document.querySelector(".styled-input");
+const textSpan = document.getElementById("text_span");
+const chatSubmit = document.getElementById("chatSubmit");
+
+function handleUserInput(input) {
+  const userText = input.value;
+  input.value = "";
+
+  textSpan.innerHTML = userText;
+  textSpan.className = "";
+  textSpan.classList.remove("animate-text");
+  void textSpan.offsetWidth;
+  textSpan.classList.add("animate-text");
+
+  function onUserAnimationEnd() {
+    textSpan.removeEventListener("animationend", onUserAnimationEnd);
+
+    setTimeout(async () => {
+      textSpan.innerHTML = "";
+      textSpan.classList.remove("animate-text-ai");
+      void textSpan.offsetWidth;
+      textSpan.classList.add("animate-text-ai");
+
+      await streamOllamaResponse(textSpan, userText);
+    }, 1000);
   }
+
+  textSpan.addEventListener("animationend", onUserAnimationEnd);
+}
+
+if (input) {
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") handleUserInput(input);
+  });
+}
+
+chatSubmit.addEventListener("click", () => {
+  if (input.value) handleUserInput(input);
 });

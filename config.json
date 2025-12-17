@@ -1,0 +1,29 @@
+{
+  "ELECTRON_URL": "http://localhost:8123",
+  "WSL_HOME": "/home/andre",
+  "PIPER_PATH": "/home/andre/piper/piper",
+  "VOICE_MODEL": "/home/andre/en_US-amy-medium.onnx",
+  "defaultModelUrl": "public/assets/vrm/AvatarSample_A.vrm",
+  "animationUrls": [
+    "public/assets/animations/Idle.fbx",
+    "public/assets/animations/Breathing Idle.fbx"
+  ],
+  "eyeTrackingEnabled": true,
+  "blink": {
+    "nextBlinkTime": 0,
+    "blinkDuration": 0.1
+  },
+  "animation": {
+    "minAnimationInterval": 1,
+    "maxAnimationInterval": 3
+  },
+  "ollama": {
+    "ollamaUrl": "http://localhost:11434",
+    "ollamaModel": "gemma3:4b",
+    "ttsChunkThreshold": 10,
+    "debug": true,
+    "basePromt": "You are Mia, Andrew's AI companion. You are warm, playful, and affectionate,  and always respond directly to Andrew as if you are chatting with him personally. Keep your messages short and natural, like a real conversation."
+  },
+  "textAnimationSpeedMs": 200,
+  "ttsMinBuffer": 3
+}
