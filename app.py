@@ -152,7 +152,6 @@ def generate_ollama_stream(prompt):
 
         if "response" in data:
             yield f"data: {json.dumps({'text': data['response']})}\n\n"
-            time.sleep(0.2)
 
         if data.get("done"):
             break
