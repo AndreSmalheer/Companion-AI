@@ -1,4 +1,10 @@
-const { app, BrowserWindow, screen, globalShortcut } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  screen,
+  globalShortcut,
+  ipcMain,
+} = require("electron");
 const express = require("express");
 
 let overlayWindow;
@@ -35,12 +41,6 @@ app.whenReady().then(() => {
 
   globalShortcut.register("Control+Shift+O", () => {
     overlayVisible = !overlayVisible;
-
-    if (overlayVisible) {
-      overlayWindow.setIgnoreMouseEvents(false);
-    } else {
-      overlayWindow.setIgnoreMouseEvents(true, { forward: true });
-    }
     overlayWindow.webContents.send("toggle-visibility");
   });
 });
@@ -61,4 +61,8 @@ api.get("/hide", (req, res) => {
 
 api.listen(PORT, () => {
   console.log("Electron overlay API running on port", PORT);
+});
+
+ipcMain.on("set-ignore-mouse-events", (event, ignore, options) => {
+  overlayWindow.setIgnoreMouseEvents(ignore, options);
 });

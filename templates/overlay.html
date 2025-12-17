@@ -43,11 +43,11 @@
   <body>
     <input
       type="text"
-      class="styled-input hidden"
+      class="styled-input hidden interactive"
       placeholder="Type something..."
     />
 
-    <div id="chatSubmit" class="hidden">
+    <div id="chatSubmit" class="hidden interactive">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
@@ -97,6 +97,21 @@
       if (!input.classList.contains("hidden")) {
         input.focus();
       }
+    });
+
+    // Get all interactive elements
+    const interactiveElements = document.querySelectorAll(".interactive");
+
+    interactiveElements.forEach((element) => {
+      element.addEventListener("mouseenter", () => {
+        // Allow mouse events when hovering over buttons
+        ipcRenderer.send("set-ignore-mouse-events", false);
+      });
+
+      element.addEventListener("mouseleave", () => {
+        // Ignore mouse events when leaving buttons
+        ipcRenderer.send("set-ignore-mouse-events", true, { forward: true });
+      });
     });
   </script>
 </html>
