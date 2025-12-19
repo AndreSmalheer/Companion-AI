@@ -7,8 +7,7 @@
   "defaultPose": "public/assets/animations/Idle.fbx",
   "animationUrls": [
     "public/assets/animations/Idle.fbx",
-    "public/assets/animations/Breathing Idle.fbx",
-    "public/assets/animations/VRm-idle.fbx"
+    "public/assets/animations/Breathing Idle.fbx"
   ],
   "eyeTrackingEnabled": true,
   "blink": {

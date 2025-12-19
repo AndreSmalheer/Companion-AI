@@ -21,6 +21,11 @@ OLLAMA_URL = config["ollama"]["ollamaUrl"]
 OLLAMA_MODEL = config["ollama"]["ollamaModel"]
 BASE_PROMT = config["ollama"]["basePromt"]
 
+@app.route('/settings')
+def settings():
+    return render_template('settings.html')
+
+
 @app.route("/config")
 def get_config():
     with open("config.json") as f:

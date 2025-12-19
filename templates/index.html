@@ -43,6 +43,7 @@
 
     <div id="ollama-text-debug"></div>
 
+    <div class="html-import" data-src="{{ url_for('settings') }}"></div>
     <script>
       document.addEventListener("visibilitychange", function () {
         if (document.hidden) {
@@ -67,6 +68,11 @@
     <script
       type="module"
       src="{{ url_for('static', filename='scripts/main.js') }}"
+    ></script>
+
+    <script
+      type="module"
+      src="{{ url_for('static', filename='himport/htmlImporter.js') }}"
     ></script>
   </body>
 </html>

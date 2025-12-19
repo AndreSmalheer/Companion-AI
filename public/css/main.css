@@ -1,5 +1,6 @@
 /* Layout */
 @import url("layout/layout.css");
+@import url("layout/window.css");
 
 /* Components */
 @import url("components/inputs.css");
