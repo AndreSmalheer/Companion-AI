@@ -13,4 +13,19 @@
   transition: all 0.3s ease;
   left: 50%;
   transform: translate(-50%, -50%);
+  animation: window-appear 0.5s forwards;
+}
+
+#settings-icon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 35px;
+  height: 35px;
+  background: url("/public/assets/images/setting.png") no-repeat center center;
+  background-size: cover;
+
+  &:hover {
+    cursor: pointer;
+  }
 }
