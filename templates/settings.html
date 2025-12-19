@@ -1,7 +1,15 @@
 <div id="settings-icon"></div>
 
 <div id="settings" class="window hidden">
-  <h1>Hello</h1>
+  <label for="electronUrl">ELECTRON_URL:</label>
+  <input
+    type="text"
+    id="electronUrl"
+    name="ELECTRON_URL"
+    value="http://localhost:8123"
+  />
+  <div id="status"></div>
+  <button type="button" id="verifyBtn">Verify Connection</button>
 </div>
 
 <script src="/public/scripts/settings.js"></script>

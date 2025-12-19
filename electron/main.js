@@ -58,6 +58,13 @@ app.whenReady().then(() => {
 const api = express();
 const PORT = 8123;
 
+api.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  next();
+});
+
 api.get("/show", (req, res) => {
   overlayWindow.show();
   showingOverlay = true;
@@ -68,6 +75,12 @@ api.get("/hide", (req, res) => {
   overlayWindow.hide();
   showingOverlay = false;
   res.send("hidden");
+});
+
+api.get("/status", (req, res) => {
+  res.json({
+    visible: true,
+  });
 });
 
 api.listen(PORT, () => {
