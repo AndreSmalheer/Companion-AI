@@ -93,7 +93,15 @@ const form = document.getElementById("settingsForm");
 
 form.addEventListener("submit", function (event) {
   event.preventDefault();
+
   const formData = new FormData(form);
+  formData.delete("USE_BASE_PROMPT");
+
+  const useBasePrompt = form.querySelector("#useBasePrompt").checked;
+  if (!useBasePrompt) {
+    formData.set("BASE_PROMPT", "");
+  }
   const data = Object.fromEntries(formData.entries());
+
   console.log(data);
 });

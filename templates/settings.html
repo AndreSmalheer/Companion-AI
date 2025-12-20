@@ -7,8 +7,13 @@
       <h3>Electron Settings</h3>
       <div class="field-group">
         <div title="Path to your Linux home directory inside WSL">
-          <label for="wslHome"> WSL_HOME: </label>
-          <input type="text" id="wslHome" name="WSL_HOME" value="/home/andre" />
+          <label for="electronUrl">ELECTRON_URL</label>
+          <input
+            type="text"
+            id="electronUrl"
+            name="ELECTRON_URL"
+            value="http://localhost:8123"
+          />
         </div>
 
         <div id="status-electron" class="status-resut"></div>
@@ -187,7 +192,12 @@
         <!-- Connection -->
         <div class="field" title="Ollama API endpoint URL">
           <label for="ollamaUrl" style="margin-bottom: 12px">Ollama URL</label>
-          <input type="text" id="ollamaUrl" value="http://localhost:11434" />
+          <input
+            type="text"
+            id="ollamaUrl"
+            name="OLLAMA_URL"
+            value="http://localhost:11434"
+          />
         </div>
 
         <div
@@ -195,7 +205,7 @@
           title="Select the Ollama model to use for text generation"
         >
           <label for="ollamaModel">Ollama Model</label>
-          <select id="ollamaModel">
+          <select id="ollamaModel" name="OLLAMA_MODEL">
             <option value="gemma3:4b" selected>gemma3:4b</option>
             <option value="gemma2:4b">gemma2:4b</option>
             <option value="gemma1:4b">gemma1:4b</option>
@@ -215,7 +225,12 @@
           title="Minimum number of characters before TTS starts speaking"
         >
           <label for="ttsChunkThreshold">TTS Chunk Threshold</label>
-          <input type="number" id="ttsChunkThreshold" value="10" />
+          <input
+            type="number"
+            id="ttsChunkThreshold"
+            name="TTS_CHUNK_THRESHOLD"
+            value="10"
+          />
         </div>
 
         <div
@@ -226,6 +241,7 @@
           <input
             type="number"
             id="textAnimationSpeedMs"
+            name="TEXT_ANIMATION_SPEED_MS"
             value="200"
             step="10"
             min="0"
@@ -238,7 +254,7 @@
           title="Enable or disable debug mode for extra logging"
         >
           <label for="debug">Debug Mode</label>
-          <input type="checkbox" id="debug" checked />
+          <input type="checkbox" id="debug" name="DEBUG_MODE" checked />
         </div>
 
         <div
@@ -246,7 +262,7 @@
           title="Defines whether to use a base prompt or not"
         >
           <label for="useBasePrompt">Use Base Prompt</label>
-          <input type="checkbox" id="useBasePrompt" />
+          <input type="checkbox" id="useBasePrompt" name="USE_BASE_PROMPT" />
         </div>
 
         <!-- Prompt -->
@@ -257,11 +273,12 @@
         >
         <textarea
           id="basePrompt"
+          name="BASE_PROMPT"
           rows="4"
           title="System prompt that defines the personality and behavior"
         >
 You are Mia, Andrew's AI companion. You are warm, playful, and affectionate, and always respond directly to Andrew as if you are chatting with him personally. Keep your messages short and natural, like a real conversation.
-</textarea
+    </textarea
         >
       </div>
     </div>
