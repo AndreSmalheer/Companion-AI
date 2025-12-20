@@ -259,6 +259,29 @@
     margin: 0 auto;
     width: fit-content;
   }
+
+  #drop-area {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 14px 0;
+    width: 95%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    color: #555;
+    height: 40px;
+
+    &:hover {
+      border-color: #333;
+    }
+
+    & input[type="file"] {
+      display: none;
+    }
+  }
 }
 
 .checkbox_container {
