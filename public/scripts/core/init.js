@@ -67,6 +67,17 @@ export function init(overlay) {
     controls.update();
   }
 
+  window.addEventListener("resize", () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
+  });
+
   // scene
   let scene = new THREE.Scene();
 
