@@ -3,7 +3,7 @@
   "WSL_HOME": "/home/andre",
   "PIPER_PATH": "/home/andre/piper/piper",
   "VOICE_MODEL": "/home/andre/en_US-amy-medium.onnx",
-  "defaultModelUrl": "public/assets/vrm/Mia.vrm",
+  "defaultModelUrl": "public/assets/vrm/AvatarSample_A.vrm",
   "defaultPose": "public/assets/animations/Idle.fbx",
   "animationUrls": [
     "public/assets/animations/Idle.fbx",
