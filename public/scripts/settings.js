@@ -86,8 +86,15 @@ function updateUI(settings) {
     if (settings.ollama.ttsChunkThreshold !== undefined)
       document.getElementById("ttsChunkThreshold").value =
         settings.ollama.ttsChunkThreshold;
-    if (settings.ollama.basePromt !== undefined)
+    if (settings.ollama.basePromt !== "") {
       document.getElementById("basePrompt").value = settings.ollama.basePromt;
+      document.getElementById("useBasePrompt").checked = true;
+      document.getElementById("basePrompt").classList.remove("hidden");
+    } else {
+      document.getElementById("basePrompt").innerHTML = "";
+      document.getElementById("basePrompt").classList.add("hidden");
+      document.getElementById("useBasePrompt").checked = false;
+    }
 
     // Handle Checkbox for Debug
     const debugEl = document.getElementById("debug");
