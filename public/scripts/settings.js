@@ -2,6 +2,8 @@ const settings_btn = document.getElementById("settings-icon");
 const useBasePrompt_checkbox = document.getElementById("useBasePrompt");
 let new_animations = [];
 
+let animations = [];
+
 async function verifyHttpConnection(url, statusDiv) {
   statusDiv.textContent = "Verifying...";
   statusDiv.style.color = "";
@@ -19,6 +21,115 @@ async function verifyHttpConnection(url, statusDiv) {
     statusDiv.style.color = "red";
   }
 }
+
+function updateUI(settings) {
+  if (!settings) return;
+
+  if (settings.animationUrls && Array.isArray(settings.animationUrls)) {
+    settings.animationUrls.forEach((url) => {
+      const exists = animations.some((anim) => anim.url === url);
+
+      if (!exists) {
+        const fileName = url.split("/").pop();
+        const newEntry = {
+          id: fileName.toLowerCase().replace(".fbx", ""),
+          name: fileName,
+          url: url,
+          desc: `Imported animation: ${fileName}`,
+        };
+        animations.push(newEntry);
+      }
+    });
+  }
+
+  add_Animation(animations);
+
+  const simpleFields = {
+    electronUrl: settings.ELECTRON_URL,
+    wslHome: settings.WSL_HOME,
+    piperPath: settings.PIPER_PATH,
+    voiceModel: settings.VOICE_MODEL,
+    defaultModelUrl: settings.defaultModelUrl,
+    defaultPose: settings.defaultPose,
+    blinkDuration: settings.blinkDuration,
+    textAnimationSpeedMs: settings.textAnimationSpeedMs,
+    ttsMinBuffer: settings.ttsMinBuffer,
+    lightColor: settings.light_color,
+    lightIntensity: settings.light_intensety,
+  };
+
+  for (const [key, value] of Object.entries(simpleFields)) {
+    let el =
+      document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+
+    if (el && value !== undefined) {
+      el.value = value;
+    }
+  }
+
+  // --- 2. Nested Objects (Animation & Ollama) ---
+  if (settings.animation) {
+    if (settings.animation.minAnimationInterval !== undefined)
+      document.getElementById("minAnimationInterval").value =
+        settings.animation.minAnimationInterval;
+    if (settings.animation.maxAnimationInterval !== undefined)
+      document.getElementById("maxAnimationInterval").value =
+        settings.animation.maxAnimationInterval;
+  }
+
+  if (settings.ollama) {
+    if (settings.ollama.ollamaUrl !== undefined)
+      document.getElementById("ollamaUrl").value = settings.ollama.ollamaUrl;
+    if (settings.ollama.ollamaModel !== undefined)
+      document.getElementById("ollamaModel").value =
+        settings.ollama.ollamaModel;
+    if (settings.ollama.ttsChunkThreshold !== undefined)
+      document.getElementById("ttsChunkThreshold").value =
+        settings.ollama.ttsChunkThreshold;
+    if (settings.ollama.basePromt !== undefined)
+      document.getElementById("basePrompt").value = settings.ollama.basePromt;
+
+    // Handle Checkbox for Debug
+    const debugEl = document.getElementById("debug");
+    if (debugEl) debugEl.checked = !!settings.ollama.debug;
+  }
+
+  // --- 3. Checkboxes (Booleans) ---
+  const checkboxes = {
+    eyeTrackingEnabled: settings.eyeTrackingEnabled,
+    blink: settings.blink,
+  };
+
+  for (const [id, value] of Object.entries(checkboxes)) {
+    const el = document.getElementById(id);
+    if (el && value !== undefined) {
+      el.checked = !!value;
+    }
+  }
+
+  // --- 4. Special Case: Animation List (Checkboxes by Value) ---
+  if (settings.animationUrls && Array.isArray(settings.animationUrls)) {
+    const animCheckboxes = document.querySelectorAll(
+      'input[name="animationUrls"]'
+    );
+    animCheckboxes.forEach((cb) => {
+      cb.checked = settings.animationUrls.includes(cb.value);
+    });
+  }
+
+  console.log("UI updated with loaded settings.");
+}
+
+function load_settings() {
+  fetch("http://127.0.0.1:5000/api/load_settings", {})
+    .then((response) => response.json())
+    .then((data) => {
+      updateUI(data);
+    })
+    .catch((error) => console.error("Error:", error));
+}
+
+load_settings();
 
 document.getElementById("verifyBtnElectron").addEventListener("click", () => {
   const url = document.getElementById("electronUrl").value + "/status";
@@ -214,28 +325,18 @@ dropArea.addEventListener("drop", (e) => {
   }
 });
 
-let animations = [
-  {
-    id: "idle",
-    name: "Idle.fbx",
-    url: "public/assets/animations/Idle.fbx",
-    desc: "Idle animation for the avatar",
-  },
-  {
-    id: "breathing",
-    name: "Breathing.fbx",
-    url: "public/assets/animations/Breathing Idle.fbx",
-    desc: "Breathing animation",
-  },
-];
-
 const list = document.getElementById("animations_list");
 
 list.innerHTML = "";
 
-add_Animation(animations);
-
 function add_Animation(files) {
+  console.log("Files received by function:", files);
+
+  if (!files || files.length === 0) {
+    console.error("The loop is skipping because 'files' is empty!");
+    return;
+  }
+
   for (const file of files) {
     const safeId = file.name.replace(/[^a-z0-9]/gi, "_");
 

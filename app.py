@@ -27,6 +27,41 @@ UPLOAD_FOLDER = 'public/assets/animations/'
 def settings():
     return render_template('settings.html')
 
+@app.route('/api/load_settings')
+def load_settings():
+    with open('config.json', 'r') as file:
+        data = json.load(file)
+
+    SETTINGS_DATA = {
+        "ELECTRON_URL": data.get("ELECTRON_URL"),
+        "WSL_HOME": data.get("WSL_HOME"),
+        "PIPER_PATH": data.get("PIPER_PATH"),
+        "VOICE_MODEL": data.get("VOICE_MODEL"),
+        "defaultModelUrl": data.get("defaultModelUrl"),
+        "defaultPose": data.get("defaultPose"),
+        "animationUrls": data.get("animationUrls"),
+        "eyeTrackingEnabled": data.get("eyeTrackingEnabled"),
+        "blink": data.get("blink"),
+        "blinkDuration": data.get("blinkDuration"),
+        "animation": {
+            "minAnimationInterval": data.get("animation", {}).get("minAnimationInterval"),
+            "maxAnimationInterval": data.get("animation", {}).get("maxAnimationInterval")
+        },
+        "ollama": {
+            "ollamaUrl": data.get("ollama", {}).get("ollamaUrl"),
+            "ollamaModel": data.get("ollama", {}).get("ollamaModel"),
+            "ttsChunkThreshold": data.get("ollama", {}).get("ttsChunkThreshold"),
+            "debug": data.get("ollama", {}).get("debug"),
+            "basePromt": data.get("ollama", {}).get("basePromt")
+        },
+        "textAnimationSpeedMs": data.get("textAnimationSpeedMs"),
+        "ttsMinBuffer": data.get("ttsMinBuffer"),
+        "light_color": data.get("light_color"),
+        "light_intensety": data.get("light_intensety")
+    }
+
+    return SETTINGS_DATA
+
 
 @app.route('/api/update_settings', methods=['POST'])
 def update_settings():
