@@ -223,26 +223,7 @@ const list = document.getElementById("animations_list");
 
 list.innerHTML = "";
 
-for (const anim of animations) {
-  const container = document.createElement("div");
-  container.className = "animation_container";
-  container.title = anim.desc;
-
-  const label = document.createElement("label");
-  label.setAttribute("for", anim.id);
-  label.textContent = anim.name;
-
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  checkbox.id = anim.id;
-  checkbox.name = "animationUrls";
-  checkbox.value = anim.url;
-  checkbox.checked = true;
-
-  container.appendChild(label);
-  container.appendChild(checkbox);
-  list.appendChild(container);
-}
+add_Animation(animations);
 
 function add_Animation(files) {
   for (const file of files) {
@@ -263,6 +244,14 @@ function add_Animation(files) {
 
     checkbox.value = file.url || file.name;
     checkbox.checked = true;
+
+    container.addEventListener("click", function (e) {
+      if (event.target === checkbox) {
+        return;
+      }
+      checkbox.checked = !checkbox.checked;
+      checkbox.dispatchEvent(new Event("change"));
+    });
 
     container.appendChild(label);
     container.appendChild(checkbox);
