@@ -11,6 +11,12 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_folder='public')
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+VRM_FOLDER = os.path.join(BASE_DIR, "public/assets/vrm")
+
+if not os.path.exists(VRM_FOLDER):
+    os.makedirs(VRM_FOLDER)
+
 
 with open("config.json") as f:
     config = json.load(f)
@@ -62,6 +68,11 @@ def load_settings():
 
     return SETTINGS_DATA
 
+@app.route('/api/load_vrm_models')
+def load_vrm_models():
+    vrm_files = [f for f in os.listdir(VRM_FOLDER) if f.endswith('.vrm')]
+
+    return jsonify(vrm_files), 200
 
 @app.route('/api/update_settings', methods=['POST'])
 def update_settings():
@@ -92,13 +103,22 @@ def update_settings():
             if new_url not in ANIMATIONS_URLS:
                 ANIMATIONS_URLS.append(new_url)
 
+
+    if 'vrm_file' in request.files:
+        vrm_file = request.files['vrm_file']
+        if vrm_file.filename != '':
+            vrm_name = secure_filename(vrm_file.filename)
+            vrm_save_path = os.path.join(VRM_FOLDER, vrm_name)
+            vrm_file.save(vrm_save_path)
+            DEFAULT_MODEL_URL = vrm_name            
+
     # --- 4. STRUCTURE DATA ---
     SETTINGS_DATA = {
         "ELECTRON_URL": ELECTRON_URL,
         "WSL_HOME": WSL_HOME,
         "PIPER_PATH": PIPER_PATH,
         "VOICE_MODEL": VOICE_MODEL,
-        "defaultModelUrl": DEFAULT_MODEL_URL,
+        "defaultModelUrl": f"public/assets/vrm/{DEFAULT_MODEL_URL}",
         "defaultPose": DEFAULT_POSE,
         "animationUrls": ANIMATIONS_URLS,
         "eyeTrackingEnabled": EYE_TRACKING,

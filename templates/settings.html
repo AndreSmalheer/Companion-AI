@@ -74,24 +74,29 @@
       <h3>Animation Settings</h3>
 
       <div class="field-group">
-        <div title="Path to the default VRM avatar model">
-          <label for="defaultModelUrl">Default Model URL:</label>
+        <div class="field">
+          <label>Default Model:</label>
+          <select id="defaultModelSelect" name="defaultModelUrl">
+            <option value="">-- Select Animation --</option>
+            <option value="add">Add New Item</option>
+          </select>
+
           <input
-            type="text"
-            id="defaultModelUrl"
-            name="defaultModelUrl"
-            value="public/assets/vrm/AvatarSample_A.vrm"
+            type="file"
+            id="new_defalut_model"
+            accept=".vrm"
+            style="display: none"
+            multiple
           />
         </div>
 
         <div title="Default pose/animation file used on startup">
-          <label for="defaultPose">Default Pose:</label>
-          <input
-            type="text"
-            id="defaultPose"
-            name="defaultPose"
-            value="public/assets/animations/Idle.fbx"
-          />
+          <label for="defaultPoseSelect">Default Pose:</label>
+          <div class="field">
+            <select id="defaultPoseSelect" name="defaultPose">
+              <option value="">-- Select from Animations --</option>
+            </select>
+          </div>
         </div>
 
         <p>Animations to Use:</p>
@@ -336,4 +341,4 @@ You are Mia, Andrew's AI companion. You are warm, playful, and affectionate, and
   </form>
 </div>
 
-<script src="/public/scripts/settings.js"></script>
+<script type="module" src="/public/scripts/settings.js"></script>

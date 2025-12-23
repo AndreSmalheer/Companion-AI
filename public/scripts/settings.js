@@ -44,6 +44,11 @@ function updateUI(settings) {
 
   add_Animation(animations);
 
+  const poseSelect = document.getElementById("defaultPoseSelect");
+  if (settings.defaultPose) {
+    poseSelect.value = settings.defaultPose;
+  }
+
   const simpleFields = {
     electronUrl: settings.ELECTRON_URL,
     wslHome: settings.WSL_HOME,
@@ -58,12 +63,41 @@ function updateUI(settings) {
     lightIntensity: settings.light_intensety,
   };
 
+  if (settings.animationUrls && Array.isArray(settings.animationUrls)) {
+    // Use a slight timeout or ensure this runs AFTER add_Animation
+    const animCheckboxes = document.querySelectorAll(
+      'input[name="animationUrls"]'
+    );
+    animCheckboxes.forEach((cb) => {
+      cb.checked = settings.animationUrls.includes(cb.value);
+    });
+  }
+
   for (const [key, value] of Object.entries(simpleFields)) {
     let el =
       document.getElementById(key) || document.querySelector(`[name="${key}"]`);
 
     if (el && value !== undefined) {
-      el.value = value;
+      if (el.id === "defaultModelSelect") {
+        continue;
+      }
+
+      if (el.id === "defaultPoseSelect") {
+        continue;
+      }
+
+      if (el.tagName === "SELECT") {
+        const optionExists = Array.from(el.options).some(
+          (opt) => opt.value === value
+        );
+        if (optionExists) {
+          el.value = value;
+        } else {
+          el.selectedIndex = 0;
+        }
+      } else {
+        el.value = value;
+      }
     }
   }
 
@@ -221,6 +255,11 @@ form.addEventListener("submit", function (event) {
     formData.append("animations", file);
   });
 
+  const vrmInput = document.getElementById("new_defalut_model");
+  if (vrmInput.files && vrmInput.files[0]) {
+    formData.append("vrm_file", vrmInput.files[0]);
+  }
+
   const useBasePrompt = form.querySelector("#useBasePrompt").checked;
   if (!useBasePrompt) {
     formData.set("BASE_PROMPT", "");
@@ -276,7 +315,19 @@ fileInput.addEventListener("change", () => {
   );
 
   if (fbxFiles.length > 0) {
+    // Convert File objects to our animation entry format
+    const newEntries = fbxFiles.map((file) => ({
+      id: file.name.toLowerCase().replace(".fbx", ""),
+      name: file.name,
+      url: file.name, // Use name as fallback URL until uploaded
+      desc: `New upload: ${file.name}`,
+    }));
+
+    // Add to our global tracking array
+    animations.push(...newEntries);
     new_animations.push(fbxFiles);
+
+    // Refresh the list and the dropdown
     add_Animation(fbxFiles);
   } else if (selectedFiles.length > 0) {
     alert("Please select .fbx files only.");
@@ -326,6 +377,14 @@ dropArea.addEventListener("drop", (e) => {
   );
 
   if (fbxFiles.length > 0) {
+    const newEntries = fbxFiles.map((file) => ({
+      id: file.name.toLowerCase().replace(".fbx", ""),
+      name: file.name,
+      url: file.name,
+      desc: `Dropped file: ${file.name}`,
+    }));
+
+    animations.push(...newEntries);
     add_Animation(fbxFiles);
   } else {
     alert("Please drop .fbx files only.");
@@ -337,19 +396,14 @@ const list = document.getElementById("animations_list");
 list.innerHTML = "";
 
 function add_Animation(files) {
-  console.log("Files received by function:", files);
-
-  if (!files || files.length === 0) {
-    console.error("The loop is skipping because 'files' is empty!");
-    return;
-  }
+  if (!files || files.length === 0) return;
 
   for (const file of files) {
     const safeId = file.name.replace(/[^a-z0-9]/gi, "_");
+    if (document.getElementById(safeId)) continue;
 
     const container = document.createElement("div");
     container.className = "animation_container";
-    container.title = file.desc || `File: ${file.name}`;
 
     const label = document.createElement("label");
     label.setAttribute("for", safeId);
@@ -359,14 +413,12 @@ function add_Animation(files) {
     checkbox.type = "checkbox";
     checkbox.id = safeId;
     checkbox.name = "animationUrls";
-
     checkbox.value = file.url || file.name;
     checkbox.checked = true;
 
+    // FIX: Add the click logic right here!
     container.addEventListener("click", function (e) {
-      if (event.target === checkbox) {
-        return;
-      }
+      if (e.target === checkbox) return; // Don't double-toggle if clicking the checkbox itself
       checkbox.checked = !checkbox.checked;
       checkbox.dispatchEvent(new Event("change"));
     });
@@ -375,4 +427,124 @@ function add_Animation(files) {
     container.appendChild(checkbox);
     list.appendChild(container);
   }
+  syncPoseDropdown();
 }
+
+const animationSelect = document.getElementById("defaultModelSelect");
+const new_defalut_model = document.getElementById("new_defalut_model");
+
+let default_models = [];
+
+async function load_default_models() {
+  try {
+    // 1. Get the VRM file list
+    const vrmRes = await fetch("/api/load_vrm_models");
+    const vrmData = await vrmRes.json();
+
+    // 2. Get the current settings
+    const settingsRes = await fetch("http://127.0.0.1:5000/api/load_settings");
+    const settingsData = await settingsRes.json();
+
+    // 3. Extract the saved filename
+    const savedFileName = settingsData.defaultModelUrl
+      ? settingsData.defaultModelUrl.split("/").pop()
+      : "";
+
+    default_models = vrmData.map((name) => {
+      const isSelected = name === savedFileName;
+      return {
+        name: name,
+        status: isSelected ? "selected" : "idle",
+        poseStatus: isSelected ? "selected" : "idle",
+      };
+    });
+
+    console.log("Internal load with selection:", default_models);
+
+    // 5. Update the UI
+    renderModels();
+    syncPoseDropdown(); // Also update the pose dropdown if it depends on this
+  } catch (error) {
+    console.error("Error loading models or settings:", error);
+  }
+}
+
+await load_default_models();
+console.log(default_models);
+
+function renderModels() {
+  while (animationSelect.options.length > 2) {
+    animationSelect.remove(1);
+  }
+
+  for (const model of default_models) {
+    const newOption = new Option(model.name, model.name);
+    const lastIndex = animationSelect.options.length - 1;
+
+    animationSelect.add(newOption, lastIndex);
+
+    // This sets the dropdown to the correct value
+    if (model.status === "selected") {
+      animationSelect.value = model.name;
+    }
+  }
+}
+
+renderModels();
+
+const poseSelect = document.getElementById("defaultPoseSelect");
+
+function syncPoseDropdown() {
+  const poseSelect = document.getElementById("defaultPoseSelect");
+  if (!poseSelect) return;
+
+  // 1. Keep the placeholder, clear everything else
+  poseSelect.options.length = 1;
+
+  // 2. Loop through your FBX animations array
+  animations.forEach((anim) => {
+    // We use anim.url as the value because that's what the server needs
+    const opt = new Option(anim.name, anim.url || anim.name);
+    poseSelect.add(opt);
+  });
+
+  // 3. Optional: Auto-select the first animation if one exists and none is selected
+  if (poseSelect.options.length > 1 && !poseSelect.value) {
+    poseSelect.selectedIndex = 1;
+  }
+}
+
+animationSelect.addEventListener("change", function () {
+  if (this.value === "add") {
+    new_defalut_model.click();
+    this.value = "";
+  } else {
+    default_models.forEach(
+      (m) => (m.status = m.name === this.value ? "selected" : "idle")
+    );
+  }
+});
+
+new_defalut_model.addEventListener("change", function () {
+  if (this.files && this.files[0]) {
+    const fileName = this.files[0].name;
+
+    // Reset only the VRM model status
+    default_models.forEach((m) => (m.status = "idle"));
+
+    // Add the new VRM to the model list
+    default_models.push({
+      name: fileName,
+      status: "selected",
+      poseStatus: null, // Poses are FBX, so we leave this null here
+    });
+
+    const newOption = new Option(fileName, fileName);
+    const lastIndex = animationSelect.options.length - 1;
+    animationSelect.add(newOption, lastIndex);
+    animationSelect.value = fileName;
+
+    // We DON'T call syncPoseDropdown here because adding a VRM
+    // shouldn't change the animation/pose list.
+  }
+});
