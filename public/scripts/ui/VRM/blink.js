@@ -1,5 +1,6 @@
-import { configPromise } from "../config.js";
+import { configPromise } from "../../config.js";
 const config = await configPromise;
+
 let blinkDuration = config.blinkDuration;
 let blink = config.blink;
 let blinkStartTime = 0;

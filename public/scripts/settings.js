@@ -5,6 +5,7 @@ let new_animations = [];
 let animations = [];
 
 async function verifyHttpConnection(url, statusDiv) {
+  console.log("chekking url", url);
   statusDiv.textContent = "Verifying...";
   statusDiv.style.color = "";
 

@@ -3,7 +3,6 @@ import { callTTS } from "./tts.js";
 import { configPromise } from "../config.js";
 
 const config = await configPromise;
-const OLLAMA_STREAM_URL = `${config.ollama.ollamaUrl}/ollama_stream`;
 const TTS_CHUNK_THRESHOLD = config.ollama.ttsChunkThreshold;
 const DEBUG = config.ollama.debug;
 
@@ -12,7 +11,7 @@ export async function streamOllamaResponse(textSpan, prompt) {
     textSpan.innerHTML = "Loading";
     textSpan.classList.add("loading");
 
-    const response = await fetch(OLLAMA_STREAM_URL, {
+    const response = await fetch("http://127.0.0.1:5000/ollama_stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt }),

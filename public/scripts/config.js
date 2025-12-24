@@ -6,7 +6,7 @@ async function loadConfig() {
     if (!response.ok) {
       throw new Error(`Failed to load config: ${response.status}`);
     }
-    const config = await response.json(); // will throw if JSON is invalid
+    const config = await response.json();
     return config;
   } catch (err) {
     console.error("Error loading config:", err);
