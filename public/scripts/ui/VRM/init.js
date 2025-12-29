@@ -117,12 +117,17 @@ export async function loadVRM(modelUrl, scene, lookAtTarget) {
 
 // ------------------------ Animation Loop ------------------------
 export function animate(clock, mixer, vrm) {
-  // show canvas
-  const canvas_wrap = document.querySelectorAll(".canvas-wrap");
+  const loader_container = document.getElementById("loader");
+  const main_content_container = document.getElementById("main_content");
 
-  canvas_wrap.forEach((canvas) => {
-    canvas.classList.remove("hidden");
-  });
+  setTimeout(() => {
+    loader_container.classList.add("animate-out");
+  }, 50);
+
+  setTimeout(() => {
+    main_content_container.classList.remove("hidden");
+    main_content_container.classList.add("animate-in");
+  }, 1500);
 
   function loop() {
     requestAnimationFrame(loop);

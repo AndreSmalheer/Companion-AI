@@ -8,6 +8,7 @@
 @import url("components/text-spans.css");
 @import url("components/debug.css");
 @import url("components/error.css");
+@import url("components/loader.css");
 
 /* Animations */
 @import url("animations/animations.css");

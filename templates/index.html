@@ -4,6 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <title>Companion-AI</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       .hidden {
         display: none !important;
@@ -28,29 +32,37 @@
   </head>
 
   <body>
-    <div class="canvas-wrap hidden"></div>
-
-    <input type="text" class="styled-input" placeholder="Type something..." />
-
-    <div id="chatSubmit">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        fill="white"
-        viewBox="0 0 24 24"
-      >
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-      </svg>
+    <div id="loader">
+      <img src="{{ url_for('static', filename='/assets/images/logo.png') }}" />
+      <h1>Loading content</h1>
     </div>
 
-    <div id="text_container">
-      <span id="text_span"></span>
+    <div id="main_content" class="hidden">
+      <div class="canvas-wrap"></div>
+
+      <input type="text" class="styled-input" placeholder="Type something..." />
+
+      <div id="chatSubmit">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="white"
+          viewBox="0 0 24 24"
+        >
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+        </svg>
+      </div>
+
+      <div id="text_container">
+        <span id="text_span"></span>
+      </div>
+
+      <div id="ollama-text-debug"></div>
+
+      <div class="html-import" data-src="{{ url_for('settings') }}"></div>
     </div>
 
-    <div id="ollama-text-debug"></div>
-
-    <div class="html-import" data-src="{{ url_for('settings') }}"></div>
     <script>
       document.addEventListener("visibilitychange", function () {
         if (document.hidden) {
