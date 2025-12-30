@@ -85,6 +85,15 @@ def load_animations():
         
     return jsonify(animation_data), 200
 
+@app.route('/api/animations/json')
+def get_animation_json():
+    json_file = os.path.join(BASE_DIR, "public","assets", "animations.json")
+
+    with open(json_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
 @app.route('/api/update_settings', methods=['POST'])
 def update_settings():
     ELECTRON_URL = request.form.get('ELECTRON_URL')
