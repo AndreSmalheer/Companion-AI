@@ -45,15 +45,10 @@ def load_settings():
         "PIPER_PATH": data.get("PIPER_PATH"),
         "VOICE_MODEL": data.get("VOICE_MODEL"),
         "defaultModelUrl": data.get("defaultModelUrl"),
-        "defaultPose": data.get("defaultPose"),
         "animationUrls": data.get("animationUrls"),
         "eyeTrackingEnabled": data.get("eyeTrackingEnabled"),
         "blink": data.get("blink"),
         "blinkDuration": data.get("blinkDuration"),
-        "animation": {
-            "minAnimationInterval": data.get("animation", {}).get("minAnimationInterval"),
-            "maxAnimationInterval": data.get("animation", {}).get("maxAnimationInterval")
-        },
         "ollama": {
             "ollamaUrl": data.get("ollama", {}).get("ollamaUrl"),
             "ollamaModel": data.get("ollama", {}).get("ollamaModel"),
@@ -97,7 +92,6 @@ def update_settings():
     PIPER_PATH = request.form.get('PIPER_PATH')
     VOICE_MODEL = request.form.get('VOICE_MODEL')
     DEFAULT_MODEL_URL = request.form.get('defaultModelUrl')
-    DEFAULT_POSE = request.form.get('defaultPose')
     ANIMATIONS_URLS = request.form.getlist('animationUrls')
 
     EYE_TRACKING = request.form.get('eyeTrackingEnabled') == 'on'
@@ -135,15 +129,10 @@ def update_settings():
         "PIPER_PATH": PIPER_PATH,
         "VOICE_MODEL": VOICE_MODEL,
         "defaultModelUrl": f"public/assets/vrm/{DEFAULT_MODEL_URL}",
-        "defaultPose": DEFAULT_POSE,
         "animationUrls": ANIMATIONS_URLS,
         "eyeTrackingEnabled": EYE_TRACKING,
         "blink": BLINK,
         "blinkDuration": to_float(request.form.get('blinkDuration')),
-        "animation": {
-            "minAnimationInterval": to_int(request.form.get('minAnimationInterval')),
-            "maxAnimationInterval": to_int(request.form.get('maxAnimationInterval'))
-        },
         "ollama": {
             "ollamaUrl": request.form.get('OLLAMA_URL'),
             "ollamaModel": request.form.get('OLLAMA_MODEL'),

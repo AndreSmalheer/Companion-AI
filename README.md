@@ -41,10 +41,6 @@ It uses **Piper** for TTS (Text-to-Speech) and **Ollama** for AI responses.
   },
   // Controls blinking behavior of the model.
 
-  "animation": {
-    "minAnimationInterval": 1,
-    "maxAnimationInterval": 3
-  },
   // How often the model randomly plays animations.
 
   "ollama": {
