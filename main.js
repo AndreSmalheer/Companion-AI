@@ -99,8 +99,15 @@ function create_overlay_window() {
 }
 
 app.whenReady().then(() => {
-  const flaskPath = path.join(__dirname, "backend", "dist", "app.exe");
-  flaskProcess = spawn(flaskPath, [], { stdio: "inherit" });
+  let flaskPath;
+
+  if (app.isPackaged) {
+    flaskPath = path.join(process.resourcesPath, "backend", "dist", "app.exe");
+  } else {
+    flaskPath = path.join(__dirname, "backend", "dist", "app.exe");
+  }
+
+  flaskProcess = spawn(flaskPath, [], { stdio: "inherit", shell: false });
 
   create_overlay_window();
   create_tray();

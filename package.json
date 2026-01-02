@@ -30,11 +30,18 @@
   "build": {
     "appId": "com.myapp.ai",
     "win": {
-      "target": "portable"
+      "target": "portable",
+      "icon": "frontend/assets/icon.ico"
     },
     "files": [
       "**/*",
-      "backend/dist/app.exe"
+      "!backend/dist/app.exe"
+    ],
+    "extraResources": [
+      {
+        "from": "backend/dist/app.exe",
+        "to": "backend/dist/app.exe"
+      }
     ]
   }
 }
