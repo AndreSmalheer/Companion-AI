@@ -41,12 +41,10 @@ function create_tray() {
     {
       label: "Restart",
       click: () => {
-        flaskProcess.kill();
+        app.isQuiting = true;
 
-        setTimeout(() => {
-          app.relaunch();
-          app.exit(0);
-        }, 100);
+        app.relaunch();
+        app.quit();
       },
     },
     {
