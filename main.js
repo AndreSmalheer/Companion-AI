@@ -11,6 +11,7 @@ const {
 const express = require("express");
 const path = require("path");
 const { spawn } = require("child_process");
+const http = require("http");
 
 let overlayVisible;
 
@@ -98,7 +99,29 @@ function create_overlay_window() {
   overlayWindow.loadURL("http://127.0.0.1:5000/overlay");
 }
 
-app.whenReady().then(() => {
+function waitForFlask(url, timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+
+    function check() {
+      http
+        .get(url, () => {
+          resolve();
+        })
+        .on("error", () => {
+          if (Date.now() - start > timeout) {
+            reject(new Error("Flask did not start in time"));
+          } else {
+            setTimeout(check, 100);
+          }
+        });
+    }
+
+    check();
+  });
+}
+
+app.whenReady().then(async () => {
   let flaskPath;
 
   if (app.isPackaged) {
@@ -108,6 +131,14 @@ app.whenReady().then(() => {
   }
 
   flaskProcess = spawn(flaskPath, [], { stdio: "inherit", shell: false });
+
+  try {
+    await waitForFlask("http://127.0.0.1:5000");
+    console.log("Flask is ready!");
+  } catch (err) {
+    console.error(err);
+    return;
+  }
 
   create_overlay_window();
   create_tray();
