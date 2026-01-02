@@ -27,6 +27,11 @@
         pointer-events: auto !important;
       }
 
+      #loader {
+        position: absolute;
+        right: 450px !important;
+      }
+
       canvas {
         width: auto !important;
         height: 600px !important;
@@ -38,32 +43,40 @@
       href="{{ url_for('static', filename='css/main.css') }}"
     />
   </head>
-  <div class="canvas-wrap"></div>
 
   <body>
-    <input
-      type="text"
-      class="styled-input hidden interactive"
-      placeholder="Type something..."
-    />
-
-    <div id="chatSubmit" class="hidden interactive">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        fill="white"
-        viewBox="0 0 24 24"
-      >
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-      </svg>
+    <div id="loader">
+      <img src="{{ url_for('static', filename='/assets/images/logo.png') }}" />
+      <h1>Loading content</h1>
     </div>
 
-    <div id="text_container">
-      <span id="text_span"></span>
-    </div>
+    <div id="main_content" class="hidden">
+      <div class="canvas-wrap"></div>
 
-    <div id="ollama-text-debug"></div>
+      <input
+        type="text"
+        class="styled-input hidden interactive"
+        placeholder="Type something..."
+      />
+
+      <div id="chatSubmit" class="hidden interactive">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="white"
+          viewBox="0 0 24 24"
+        >
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+        </svg>
+      </div>
+
+      <div id="text_container">
+        <span id="text_span"></span>
+      </div>
+
+      <div id="ollama-text-debug"></div>
+    </div>
 
     <script type="importmap">
       {
