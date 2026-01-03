@@ -2,10 +2,15 @@ import * as THREE from "three";
 import { lipSyncActive } from "./lipSync.js";
 
 let animations = [];
+let idle_animations = [];
 let is_playing = false;
 let current_action;
 let previous_action;
 let specs = [];
+let idleAnimations;
+let talkingAnimations;
+let playing_idle;
+let playing_talking = false;
 
 // config
 let animation_fade_in = 0.15;
@@ -186,7 +191,8 @@ export function load_animations_from_spec(
   vrm,
   mixer,
   spec,
-  clipName = "SimpleClip"
+  clipName = "SimpleClip",
+  type
 ) {
   if (!vrm || !mixer) return;
 
@@ -195,6 +201,7 @@ export function load_animations_from_spec(
 
   const clip = new THREE.AnimationClip(clipName, duration, tracks);
   const action = mixer.clipAction(clip);
+  action.type = type;
   action.setLoop(THREE.LoopOnce, 1);
   action.clampWhenFinished = true;
 
@@ -206,42 +213,34 @@ export function load_animations_from_spec(
 export function updateAnimation(vrm, mixer) {
   if (!vrm) return;
 
+  // load animations from json
   if (animations.length === 0) {
     for (let i = 0; i < specs.length; i++) {
-      const { name, spec } = specs[i];
-      load_animations_from_spec(vrm, mixer, spec, name);
+      const { name, spec, type } = specs[i];
+      load_animations_from_spec(vrm, mixer, spec, name, type);
     }
+
+    idleAnimations = animations.filter((action) => action.type === "idle");
+
+    talkingAnimations = animations.filter(
+      (action) => action.type === "talking"
+    );
   }
 
-  if (!current_action && animations.length > 0) {
-    current_action = animations[Math.floor(Math.random() * animations.length)];
-  }
-
-  if (!mixer.userData) mixer.userData = {};
-
-  function crossFade(fromAction, toAction, fadeDuration, isOneShot = false) {
+  function crossFade(fromAction, toAction, fadeDuration) {
     if (!fromAction || !toAction) return;
 
     toAction.reset();
     toAction.enabled = true;
-    toAction.userData = toAction.userData || {};
-    toAction.userData.oneShot = !!isOneShot;
 
     if (
       typeof THREE !== "undefined" &&
       typeof toAction.setLoop === "function"
     ) {
-      if (isOneShot) {
-        toAction.setLoop(THREE.LoopOnce, 1);
-        toAction.clampWhenFinished = true;
-      } else {
-        toAction.setLoop(THREE.LoopRepeat, Infinity);
-        toAction.clampWhenFinished = false;
-      }
+      toAction.clampWhenFinished = true;
     }
 
     fromAction.enabled = true;
-
     toAction.play();
 
     if (typeof toAction.crossFadeFrom === "function") {
@@ -254,117 +253,87 @@ export function updateAnimation(vrm, mixer) {
 
     previous_action = fromAction;
     current_action = toAction;
-    is_playing = !!isOneShot;
+    is_playing = true;
   }
 
-  function playRandomOneShot() {
-    if (animations.length === 0) return;
-
-    let next = animations[Math.floor(Math.random() * animations.length)];
-    if (animations.length > 1) {
-      let attempts = 0;
-      while (next === current_action && attempts < 6) {
-        next = animations[Math.floor(Math.random() * animations.length)];
-        attempts++;
-      }
-    }
-
-    if (next === current_action) {
-      next.reset();
-      next.userData = next.userData || {};
-      next.userData.oneShot = true;
-      if (typeof THREE !== "undefined" && typeof next.setLoop === "function") {
-        next.setLoop(THREE.LoopOnce, 1);
-        next.clampWhenFinished = true;
-      }
-      next.play();
-      is_playing = true;
-      return;
-    }
-
-    const fromAction = current_action || animations[0] || null;
-    crossFade(fromAction, next, animation_fade_in, true);
+  function play_animation(animation) {
+    crossFade(current_action, animation, animation_fade_in);
   }
 
-  if (!mixer.userData.hasFinishListener) {
-    mixer.userData.hasFinishListener = true;
+  if (!mixer.userData) mixer.userData = {};
+
+  if (!mixer.userData.hasAnimFinishListener) {
+    mixer.userData.hasAnimFinishListener = true;
 
     mixer.addEventListener("finished", (e) => {
       const finishedAction = e.action;
-      if (!finishedAction) return;
+      const animation_type = finishedAction.type;
 
-      if (finishedAction.userData && finishedAction.userData.oneShot) {
-        finishedAction.userData.oneShot = false;
-        is_playing = false;
+      is_playing = false;
 
+      if (animation_type == "talking") {
         if (lipSyncActive) {
-          playRandomOneShot();
-        } else {
-          const idle =
-            typeof idle_action !== "undefined" && idle_action
-              ? idle_action
-              : animations[0] || null;
+          const nextAction =
+            talkingAnimations[
+              Math.floor(Math.random() * talkingAnimations.length)
+            ];
 
-          if (idle && idle !== finishedAction) {
-            if (
-              typeof THREE !== "undefined" &&
-              typeof idle.setLoop === "function"
-            ) {
-              idle.setLoop(THREE.LoopRepeat, Infinity);
-              idle.clampWhenFinished = false;
-            }
-
-            idle.reset();
-            idle.enabled = true;
-            idle.play();
-
-            if (typeof finishedAction.crossFadeTo === "function") {
-              finishedAction.crossFadeTo(idle, animation_fade_out, true);
-            } else {
-              idle.fadeIn(animation_fade_out);
-              if (typeof finishedAction.fadeOut === "function")
-                finishedAction.fadeOut(animation_fade_out);
-            }
-
-            current_action = idle;
-          }
+          play_animation(nextAction);
         }
-        return;
       }
     });
   }
 
-  function idle() {
-    if (lipSyncActive && !is_playing) {
-      playRandomOneShot();
-    } else if (!lipSyncActive && is_playing) {
-      const fallbackIdle =
-        typeof idle_action !== "undefined" && idle_action
-          ? idle_action
-          : animations[0] || null;
-
-      if (fallbackIdle && current_action && current_action !== fallbackIdle) {
-        if (typeof current_action.crossFadeTo === "function") {
-          current_action.crossFadeTo(fallbackIdle, animation_fade_out, true);
-        } else {
-          fallbackIdle.reset();
-          fallbackIdle.play();
-          fallbackIdle.fadeIn(animation_fade_out);
-          if (typeof current_action.fadeOut === "function")
-            current_action.fadeOut(animation_fade_out);
-        }
-
-        current_action = fallbackIdle;
-      } else if (
-        current_action &&
-        typeof current_action.fadeOut === "function"
-      ) {
+  function idle_anims() {
+    if (!lipSyncActive && (!is_playing || !playing_idle)) {
+      // fade out talking animation if it was playing
+      if (current_action && playing_talking)
         current_action.fadeOut(animation_fade_out);
-      }
 
+      // pick a random idle animation
+      const nextAction =
+        idleAnimations[Math.floor(Math.random() * idleAnimations.length)];
+
+      // update state flags before starting animation
+      is_playing = true;
+      playing_idle = true;
+      playing_talking = false;
+
+      current_action = nextAction;
+      play_animation(nextAction);
+    } else if (lipSyncActive && playing_idle) {
+      // stop idle animation if talking starts
+      if (current_action) current_action.fadeOut(animation_fade_out);
       is_playing = false;
+      playing_idle = false;
     }
   }
 
-  idle();
+  function talking_anims() {
+    if (lipSyncActive && (!is_playing || !playing_talking)) {
+      // fade out idle animation if it was playing
+      if (current_action && playing_idle)
+        current_action.fadeOut(animation_fade_out);
+
+      // pick a random talking animation
+      const nextAction =
+        talkingAnimations[Math.floor(Math.random() * talkingAnimations.length)];
+
+      // update state flags before starting animation
+      is_playing = true;
+      playing_talking = true;
+      playing_idle = false;
+
+      current_action = nextAction;
+      play_animation(nextAction);
+    } else if (!lipSyncActive && playing_talking) {
+      // stop talking animation if lip sync stops
+      if (current_action) current_action.fadeOut(animation_fade_out);
+      is_playing = false;
+      playing_talking = false;
+    }
+  }
+
+  idle_anims();
+  talking_anims();
 }

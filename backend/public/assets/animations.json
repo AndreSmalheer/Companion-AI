@@ -1,6 +1,7 @@
 [
   {
     "name": "ani1",
+    "type": "talking",
     "spec": [
       {
         "bone": "head",
@@ -208,6 +209,7 @@
   },
   {
     "name": "ani2",
+    "type": "talking",
     "spec": [
       {
         "bone": "head",
@@ -221,6 +223,26 @@
           { "time": 3.5, "value": [0.08, -0.1, -0.04] },
           { "time": 4.2, "value": [-0.1, 0.05, 0.02] },
           { "time": 5.0, "value": [0.05, 0.08, 0.02] }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ani3",
+    "type": "idle",
+    "spec": [
+      {
+        "bone": "head",
+        "property": "rotationEuler",
+        "keyframes": [
+          { "time": 0, "value": [0.07, -0.03, 0.12] },
+          { "time": 0.6, "value": [-0.08, 0.11, -0.05] },
+          { "time": 1.3, "value": [0.09, -0.1, 0.04] },
+          { "time": 2.1, "value": [-0.12, 0.08, -0.07] },
+          { "time": 2.8, "value": [0.05, -0.06, 0.1] },
+          { "time": 3.5, "value": [-0.09, 0.13, -0.02] },
+          { "time": 4.2, "value": [0.11, -0.08, 0.03] },
+          { "time": 5.0, "value": [-0.04, 0.07, -0.05] }
         ]
       }
     ]
