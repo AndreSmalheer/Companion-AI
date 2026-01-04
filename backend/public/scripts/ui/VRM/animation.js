@@ -12,13 +12,12 @@ let talkingAnimations;
 let playing_idle;
 let playing_talking = false;
 let defaultAction = null;
-
 let lastActiveTime = performance.now();
-const idleDelay = 3000;
 
 // config
 let animation_fade_in = 0.15;
 let animation_fade_out = 0.15;
+const idleDelay = 3000;
 
 const ALL_HUMANOID_BONES = [
   // Root & spine
