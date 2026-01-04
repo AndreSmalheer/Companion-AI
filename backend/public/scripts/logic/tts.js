@@ -23,10 +23,21 @@ async function processTTSQueue() {
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
 
-    playAudioWithLipSync(url, window.vrm, () => {
-      URL.revokeObjectURL(url);
-      playing = false;
-      processTTSQueue();
+    const audio = new Audio(url);
+    audio.addEventListener("loadedmetadata", () => {
+      if (audio.duration < MIN_BUFFER) {
+        console.log(`Skipping TTS: audio too short (${audio.duration}s)`);
+        URL.revokeObjectURL(url);
+        playing = false;
+        processTTSQueue();
+        return;
+      }
+
+      playAudioWithLipSync(url, window.vrm, () => {
+        URL.revokeObjectURL(url);
+        playing = false;
+        processTTSQueue();
+      });
     });
   } catch (err) {
     console.error("Error fetching TTS audio:", err);
@@ -34,6 +45,7 @@ async function processTTSQueue() {
     processTTSQueue();
   }
 }
+
 export async function callTTS(input) {
   ttsQueue.push(input);
   processTTSQueue();
