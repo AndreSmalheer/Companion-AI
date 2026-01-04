@@ -1,4 +1,5 @@
 {
+  "piperUrl": "http://172.25.241.250",
   "defaultModelUrl": "public/assets/vrm/AvatarSample_A.vrm",
   "animationUrls": [],
   "eyeTrackingEnabled": true,

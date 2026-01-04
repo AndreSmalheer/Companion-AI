@@ -85,10 +85,8 @@ function updateUI(settings) {
   }
 
   const simpleFields = {
+    piperUrl: settings.piperUrl,
     electronUrl: settings.ELECTRON_URL,
-    wslHome: settings.WSL_HOME,
-    piperPath: settings.PIPER_PATH,
-    voiceModel: settings.VOICE_MODEL,
     defaultModelUrl: settings.defaultModelUrl,
     defaultPose: settings.defaultPose,
     blinkDuration: settings.blinkDuration,

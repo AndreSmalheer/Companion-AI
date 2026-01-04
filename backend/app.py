@@ -38,6 +38,7 @@ def load_settings():
         data = json.load(file)
 
     SETTINGS_DATA = {
+        "piperUrl": data.get("piperUrl"),
         "defaultModelUrl": data.get("defaultModelUrl"),
         "animationUrls": data.get("animationUrls"),
         "eyeTrackingEnabled": data.get("eyeTrackingEnabled"),
@@ -90,6 +91,7 @@ def get_animation_json():
 
 @app.route('/api/update_settings', methods=['POST'])
 def update_settings():
+    PIPERURL = request.form.get('PIPER_URL')
     DEFAULT_MODEL_URL = request.form.get('defaultModelUrl')
     ANIMATIONS_URLS = request.form.getlist('animationUrls')
 
@@ -123,6 +125,7 @@ def update_settings():
 
     # --- 4. STRUCTURE DATA ---
     SETTINGS_DATA = {
+        "piperUrl": PIPERURL,
         "defaultModelUrl": f"public/assets/vrm/{DEFAULT_MODEL_URL}",
         "animationUrls": ANIMATIONS_URLS,
         "eyeTrackingEnabled": EYE_TRACKING,
