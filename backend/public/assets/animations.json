@@ -251,9 +251,14 @@
     "name": "default_pose",
     "spec": [
       {
-        "bone": "head",
+        "bone": "leftUpperArm",
         "property": "rotationEuler",
-        "keyframes": [{ "time": 0, "value": [0.07, -0.03, 0.12] }]
+        "keyframes": [{ "time": 0, "value": [0, 0, -1.15] }]
+      },
+      {
+        "bone": "rightUpperArm",
+        "property": "rotationEuler",
+        "keyframes": [{ "time": 0, "value": [0, 0, 1.15] }]
       }
     ],
     "type": "default"
