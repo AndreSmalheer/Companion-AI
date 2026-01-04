@@ -246,5 +246,16 @@
         ]
       }
     ]
+  },
+  {
+    "name": "default_pose",
+    "spec": [
+      {
+        "bone": "head",
+        "property": "rotationEuler",
+        "keyframes": [{ "time": 0, "value": [0.07, -0.03, 0.12] }]
+      }
+    ],
+    "type": "default"
   }
 ]

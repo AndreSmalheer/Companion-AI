@@ -11,6 +11,10 @@ let idleAnimations;
 let talkingAnimations;
 let playing_idle;
 let playing_talking = false;
+let defaultAction = null;
+
+let lastActiveTime = performance.now();
+const idleDelay = 3000;
 
 // config
 let animation_fade_in = 0.15;
@@ -225,6 +229,22 @@ export function updateAnimation(vrm, mixer) {
     talkingAnimations = animations.filter(
       (action) => action.type === "talking"
     );
+
+    defaultAction = animations.find((a) => a.type === "default");
+
+    if (defaultAction && !current_action) {
+      defaultAction.reset();
+      defaultAction.enabled = true;
+      defaultAction.setLoop(THREE.LoopRepeat);
+      defaultAction.play();
+
+      current_action = defaultAction;
+      previous_action = null;
+
+      is_playing = true;
+      playing_idle = false;
+      playing_talking = false;
+    }
   }
 
   function crossFade(fromAction, toAction, fadeDuration) {
@@ -257,7 +277,7 @@ export function updateAnimation(vrm, mixer) {
   }
 
   function play_animation(animation) {
-    crossFade(current_action, animation, animation_fade_in);
+    crossFade(current_action || defaultAction, animation, animation_fade_in);
   }
 
   if (!mixer.userData) mixer.userData = {};
@@ -281,28 +301,45 @@ export function updateAnimation(vrm, mixer) {
           play_animation(nextAction);
         }
       }
+
+      if (animation_type == "idle") {
+        if (!lipSyncActive) {
+          lastActiveTime = performance.now();
+          if (current_action && current_action === finishedAction) {
+            finishedAction.fadeOut(animation_fade_out);
+            current_action = defaultAction;
+            if (defaultAction) {
+              defaultAction.reset();
+              defaultAction.enabled = true;
+              defaultAction.setLoop(THREE.LoopRepeat);
+              defaultAction.play();
+            }
+          }
+          playing_idle = false;
+          is_playing = false;
+        }
+      }
     });
   }
 
   function idle_anims() {
-    if (!lipSyncActive && (!is_playing || !playing_idle)) {
-      // fade out talking animation if it was playing
+    const now = performance.now();
+
+    if (
+      !lipSyncActive &&
+      (!is_playing || !playing_idle) &&
+      now - lastActiveTime > idleDelay
+    ) {
       if (current_action && playing_talking)
         current_action.fadeOut(animation_fade_out);
-
-      // pick a random idle animation
       const nextAction =
         idleAnimations[Math.floor(Math.random() * idleAnimations.length)];
-
-      // update state flags before starting animation
       is_playing = true;
       playing_idle = true;
       playing_talking = false;
-
       current_action = nextAction;
       play_animation(nextAction);
     } else if (lipSyncActive && playing_idle) {
-      // stop idle animation if talking starts
       if (current_action) current_action.fadeOut(animation_fade_out);
       is_playing = false;
       playing_idle = false;
@@ -311,15 +348,12 @@ export function updateAnimation(vrm, mixer) {
 
   function talking_anims() {
     if (lipSyncActive && (!is_playing || !playing_talking)) {
-      // fade out idle animation if it was playing
       if (current_action && playing_idle)
         current_action.fadeOut(animation_fade_out);
 
-      // pick a random talking animation
       const nextAction =
         talkingAnimations[Math.floor(Math.random() * talkingAnimations.length)];
 
-      // update state flags before starting animation
       is_playing = true;
       playing_talking = true;
       playing_idle = false;
@@ -327,7 +361,6 @@ export function updateAnimation(vrm, mixer) {
       current_action = nextAction;
       play_animation(nextAction);
     } else if (!lipSyncActive && playing_talking) {
-      // stop talking animation if lip sync stops
       if (current_action) current_action.fadeOut(animation_fade_out);
       is_playing = false;
       playing_talking = false;
@@ -336,4 +369,6 @@ export function updateAnimation(vrm, mixer) {
 
   idle_anims();
   talking_anims();
+
+  if (lipSyncActive) lastActiveTime = performance.now();
 }
