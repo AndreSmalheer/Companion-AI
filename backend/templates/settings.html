@@ -37,7 +37,43 @@
 
       <div class="field-group">
         <div class="field">
-          <label>Default Model:</label>
+          <div
+            class="number_contaier"
+            title="The amount of ms the animation uses to fade in to the next animation"
+          >
+            <label>Animation Fade In (ms):</label>
+            <input
+              type="number"
+              name="animation_fade_in"
+              value="3"
+              step="1"
+              min="0"
+            />
+          </div>
+
+          <div
+            class="number_contaier"
+            title="The amount of ms the animation uses to fade to the next animation"
+          >
+            <label>Animation Fade Out (ms):</label>
+            <input
+              type="number"
+              name="animation_fade_out"
+              value="3"
+              step="1"
+              min="0"
+            />
+          </div>
+
+          <div
+            class="number_contaier"
+            title="The amount of ms the model stays idle before playing an idle animation"
+          >
+            <label>Idle Delay (ms)</label>
+            <input type="number" name="idleDelay" value="3" step="1" min="0" />
+          </div>
+
+          <label style="margin-top: 20px">Default Model: </label>
           <select id="defaultModelSelect" name="defaultModelUrl">
             <option value="">-- Select Model --</option>
             <option value="add">Add New Item</option>

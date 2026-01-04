@@ -15,5 +15,8 @@
   "textAnimationSpeedMs": 200,
   "ttsMinBuffer": 0,
   "light_color": "0xffffff",
-  "light_intensety": 3.0
+  "light_intensety": 3.0,
+  "animation_fade_in": "150",
+  "animation_fade_out": "150",
+  "idleDelay": "3000"
 }

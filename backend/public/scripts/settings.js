@@ -85,6 +85,9 @@ function updateUI(settings) {
   }
 
   const simpleFields = {
+    animation_fade_in: settings.animation_fade_in,
+    animation_fade_out: settings.animation_fade_out,
+    idleDelay: settings.idleDelay,
     piperUrl: settings.piperUrl,
     electronUrl: settings.ELECTRON_URL,
     defaultModelUrl: settings.defaultModelUrl,

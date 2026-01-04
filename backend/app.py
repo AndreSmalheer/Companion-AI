@@ -54,7 +54,10 @@ def load_settings():
         "textAnimationSpeedMs": data.get("textAnimationSpeedMs"),
         "ttsMinBuffer": data.get("ttsMinBuffer"),
         "light_color": data.get("light_color"),
-        "light_intensety": data.get("light_intensety")
+        "light_intensety": data.get("light_intensety"),
+        "animation_fade_in": data.get("animation_fade_in"),
+        "animation_fade_out": data.get("animation_fade_out"),
+        "idleDelay": data.get("idleDelay")
     }
 
     return SETTINGS_DATA
@@ -141,7 +144,10 @@ def update_settings():
         "textAnimationSpeedMs": to_int(request.form.get('TEXT_ANIMATION_SPEED_MS')),
         "ttsMinBuffer": to_int(request.form.get('ttsMinBuffer')),
         "light_color": request.form.get('light_color'),
-        "light_intensety": to_float(request.form.get('light_intensety'))
+        "light_intensety": to_float(request.form.get('light_intensety')),
+        "animation_fade_in": request.form.get("animation_fade_in"),
+        "animation_fade_out": request.form.get("animation_fade_out"),
+        "idleDelay": request.form.get("idleDelay")
     }
 
     # print("\n" + "="*60)

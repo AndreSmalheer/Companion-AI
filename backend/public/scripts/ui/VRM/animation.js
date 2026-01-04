@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { lipSyncActive } from "./lipSync.js";
+import { configPromise } from "../../config.js";
+const config = await configPromise;
 
 let animations = [];
 let idle_animations = [];
@@ -15,9 +17,11 @@ let defaultAction = null;
 let lastActiveTime = performance.now();
 
 // config
-let animation_fade_in = 0.15;
-let animation_fade_out = 0.15;
-const idleDelay = 3000;
+let animation_fade_in_ms = config.animation_fade_in;
+let animation_fade_out_ms = config.animation_fade_out;
+let animation_fade_in = animation_fade_in_ms / 1000;
+let animation_fade_out = animation_fade_out_ms / 1000;
+const idleDelay = config.idleDelay;
 
 const ALL_HUMANOID_BONES = [
   // Root & spine
