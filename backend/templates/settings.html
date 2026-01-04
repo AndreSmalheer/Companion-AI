@@ -29,50 +29,6 @@
       <button type="button" id="verifyBtnPiper" class="verifyBtn">
         Verify Connection
       </button>
-
-      <!-- <h3>Piper Settings</h3>
-       
-
-      <div class="field-group">
-        <div title="Path to your Linux home directory inside WSL">
-          <label for="wslHome">WSL_HOME:</label>
-          <input type="text" id="wslHome" name="WSL_HOME" value="/home/andre" />
-        </div>
-
-        <div title="Path to the Piper TTS executable">
-          <label for="piperPath">PIPER_PATH:</label>
-          <input
-            type="text"
-            id="piperPath"
-            name="PIPER_PATH"
-            value="/home/andre/piper/piper"
-          />
-        </div>
-
-        <div title="Path to the Piper voice model (.onnx)">
-          <label for="voiceModel">VOICE_MODEL:</label>
-          <input
-            type="text"
-            id="voiceModel"
-            name="VOICE_MODEL"
-            value="/home/andre/en_US-amy-medium.onnx"
-          />
-        </div>
-
-        <div
-          class="number_contaier"
-          title="Minimum TTS buffer in seconds before playback"
-        >
-          <label>TTS Min Buffer (seconds):</label>
-          <input type="number" name="ttsMinBuffer" value="3" step="1" min="0" />
-        </div>
-
-        <div id="status-piper" class="status-resut"></div>
-      </div>
-
-      <button type="button" id="verifyBtnPiper" class="verifyBtn">
-        Verify Connection
-      </button> -->
     </div>
 
     <!-- Animation -->
@@ -257,10 +213,10 @@
         >
           <label for="ollamaModel">Ollama Model</label>
           <select id="ollamaModel" name="OLLAMA_MODEL">
-            <option value="gemma3:4b" selected>gemma3:4b</option>
+            <!-- <option value="gemma3:4b" selected>gemma3:4b</option>
             <option value="gemma2:4b">gemma2:4b</option>
             <option value="gemma1:4b">gemma1:4b</option>
-            <option value="otherModel:4b">otherModel:4b</option>
+            <option value="otherModel:4b">otherModel:4b</option> -->
           </select>
         </div>
 
@@ -273,7 +229,7 @@
         <!-- Numeric settings -->
         <div
           class="number_contaier"
-          title="Minimum number of characters before TTS starts speaking"
+          title="Maximum number of sentences before TTS starts speaking"
         >
           <label for="ttsChunkThreshold">TTS Chunk Threshold</label>
           <input
@@ -286,7 +242,7 @@
 
         <div
           class="number_contaier"
-          title="Time in milliseconds for each character when animating text"
+          title="Delay for each character when animating text"
         >
           <label for="textAnimationSpeedMs">Text Animation Speed (ms)</label>
           <input
