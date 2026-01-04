@@ -6,14 +6,22 @@
     <div class="form-section" id="piper-settings">
       <h3>Piper Settings</h3>
 
-      <div class="field" title="Piper API endpoint URL">
-        <label for="piperUrl" style="margin-bottom: 12px">Piper URL</label>
+      <div class="field-group" title="Piper API endpoint URL">
+        <label for="piperUrl" style="margin-bottom: 0px">Piper URL</label>
         <input
           type="text"
           id="piperUrl"
           name="PIPER_URL"
           value="http://172.25.241.250:8080"
         />
+
+        <div
+          class="number_contaier"
+          title="Minimum TTS buffer in seconds before playback"
+        >
+          <label>TTS Min Buffer (seconds):</label>
+          <input type="number" name="ttsMinBuffer" value="3" step="1" min="0" />
+        </div>
       </div>
 
       <div id="status-piper" class="status-resut"></div>
