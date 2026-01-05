@@ -57,7 +57,8 @@ def load_settings():
         "light_intensety": data.get("light_intensety"),
         "animation_fade_in": data.get("animation_fade_in"),
         "animation_fade_out": data.get("animation_fade_out"),
-        "idleDelay": data.get("idleDelay")
+        "idleDelay": data.get("idleDelay"),
+        "text_to_speech": data.get("text_to_speech")
     }
 
     return SETTINGS_DATA
@@ -147,8 +148,11 @@ def update_settings():
         "light_intensety": to_float(request.form.get('light_intensety')),
         "animation_fade_in": request.form.get("animation_fade_in"),
         "animation_fade_out": request.form.get("animation_fade_out"),
-        "idleDelay": request.form.get("idleDelay")
+        "idleDelay": request.form.get("idleDelay"),
+        "text_to_speech": bool(request.form.get("TextToSpeeach"))
     }
+
+    
 
     # print("\n" + "="*60)
     # print("                SAVING UPDATED SETTINGS")

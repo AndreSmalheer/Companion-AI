@@ -163,6 +163,7 @@ function updateUI(settings) {
 
   // --- 3. Checkboxes (Booleans) ---
   const checkboxes = {
+    TextToSpeeach: settings.text_to_speech,
     eyeTrackingEnabled: settings.eyeTrackingEnabled,
     blink: settings.blink,
   };

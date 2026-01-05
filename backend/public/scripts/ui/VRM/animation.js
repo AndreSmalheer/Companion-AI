@@ -24,7 +24,7 @@ let animation_fade_out_ms = config.animation_fade_out;
 let animation_fade_in = animation_fade_in_ms / 1000;
 let animation_fade_out = animation_fade_out_ms / 1000;
 const idleDelay = config.idleDelay;
-const ttsEnabled = false;
+const TextToSpeeach = config.TextToSpeeach;
 
 const ALL_HUMANOID_BONES = [
   // Root & spine
@@ -223,7 +223,7 @@ export function load_animations_from_spec(
 export function updateAnimation(vrm, mixer) {
   if (!vrm) return;
 
-  const lipSyncActiveFlag = ttsEnabled ? lipSyncActive : IsOllamaStreaming;
+  const lipSyncActiveFlag = TextToSpeeach ? lipSyncActive : IsOllamaStreaming;
 
   // load animations from json
   if (animations.length === 0) {

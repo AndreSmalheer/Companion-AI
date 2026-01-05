@@ -5,7 +5,7 @@ import { configPromise } from "../config.js";
 const config = await configPromise;
 const TTS_CHUNK_THRESHOLD = config.ollama.ttsChunkThreshold;
 const DEBUG = config.ollama.debug;
-const LipSyncActive = config.LipSyncActive;
+const TextToSpeeach = config.TextToSpeeach;
 
 export let IsOllamaStreaming = false;
 
@@ -73,7 +73,7 @@ export async function streamOllamaResponse(textSpan, prompt) {
               currentChunk = "";
 
               if (chunks.length >= TTS_CHUNK_THRESHOLD) {
-                if (LipSyncActive) {
+                if (TextToSpeeach) {
                   callTTS(chunks.join(" "));
                 }
                 chunks = [];
@@ -86,7 +86,7 @@ export async function streamOllamaResponse(textSpan, prompt) {
 
     if (currentChunk.length > 0) chunks.push(currentChunk);
     if (chunks.length > 0) {
-      if (LipSyncActive) {
+      if (TextToSpeeach) {
         callTTS(chunks.join(""));
       }
     }
