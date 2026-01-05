@@ -259,6 +259,26 @@
         "bone": "rightUpperArm",
         "property": "rotationEuler",
         "keyframes": [{ "time": 0, "value": [0, 0, 1.15] }]
+      },
+      {
+        "bone": "leftLowerArm",
+        "property": "rotationEuler",
+        "keyframes": [{ "time": 0, "value": [0, 0, -0.15] }]
+      },
+      {
+        "bone": "rightLowerArm",
+        "property": "rotationEuler",
+        "keyframes": [{ "time": 0, "value": [0, 0, 0.15] }]
+      },
+      {
+        "bone": "leftHand",
+        "property": "rotationEuler",
+        "keyframes": [{ "time": 0, "value": [0, 0, -0.15] }]
+      },
+      {
+        "bone": "rightHand",
+        "property": "rotationEuler",
+        "keyframes": [{ "time": 0, "value": [0, 0, 0.15] }]
       }
     ],
     "type": "default"
