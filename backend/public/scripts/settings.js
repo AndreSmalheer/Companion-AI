@@ -40,8 +40,57 @@ form.addEventListener("submit", function (event) {
   if (!useBasePrompt) {
     formData.set("BASE_PROMPT", "");
   }
-
   formData.delete("USE_BASE_PROMPT");
+
+  const animationsContainer = document.getElementById("animations");
+  const animations = [];
+
+  animationsContainer.querySelectorAll(".animation").forEach((animationDiv) => {
+    const titleInput = animationDiv.querySelector(
+      ".animation-header input[type=text]"
+    );
+    const selectInput = animationDiv.querySelector(".animation-header select");
+
+    const animationObj = {
+      title: titleInput ? titleInput.value : "",
+      type: selectInput ? selectInput.value : "",
+      spec: [],
+    };
+
+    // Loop over bones
+    animationDiv.querySelectorAll(".bone").forEach((boneDiv) => {
+      const boneName =
+        boneDiv.querySelector("input[name='boneName']")?.value || "";
+      const time =
+        parseFloat(
+          boneDiv.querySelector("input[type='number']:nth-of-type(1)")?.value
+        ) || 0;
+      const x =
+        parseFloat(
+          boneDiv.querySelector("input[type='number']:nth-of-type(2)")?.value
+        ) || 0;
+      const y =
+        parseFloat(
+          boneDiv.querySelector("input[type='number']:nth-of-type(3)")?.value
+        ) || 0;
+      const z =
+        parseFloat(
+          boneDiv.querySelector("input[type='number']:nth-of-type(4)")?.value
+        ) || 0;
+
+      const boneObj = {
+        bone: boneName,
+        property: "rotationEuler",
+        keyframes: [{ time: time, value: [x, y, z] }],
+      };
+
+      animationObj.spec.push(boneObj);
+    });
+
+    animations.push(animationObj);
+  });
+
+  formData.append("animations", JSON.stringify(animations));
 
   fetch("http://127.0.0.1:5000/api/update_settings", {
     method: "POST",
@@ -60,6 +109,210 @@ canvas_wrap.forEach((canvas) => {
 
     settings_container.classList.add("hidden");
   });
+});
+
+function loadAnimations() {
+  fetch("http://127.0.0.1:5000/api/load_settings", {})
+    .then((response) => response.json())
+    .then((data) => {
+      const animations_data = data.animations_data;
+      for (const anim of animations_data) {
+        addAnimation("animations", anim);
+      }
+    })
+    .catch((error) => console.error("Error:", error));
+}
+
+loadAnimations();
+
+document.querySelectorAll(".arrow").forEach((arrow) => {
+  arrow.addEventListener("click", () => {
+    arrow.classList.toggle("open");
+
+    const animationItem = arrow.closest(".animation");
+
+    const bones = animationItem.querySelector(".bones");
+
+    bones.classList.toggle("hidden", !arrow.classList.contains("open"));
+  });
+});
+
+document.querySelectorAll(".animation-header .remove").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const animationItem = btn.closest(".animation");
+
+    if (animationItem) {
+      animationItem.remove();
+    }
+  });
+});
+
+document.querySelectorAll(".bones").forEach((bonesContainer) => {
+  bonesContainer.addEventListener("click", (e) => {
+    if (e.target.classList.contains("remove-bone")) {
+      e.target.closest(".bone").remove();
+    }
+  });
+});
+
+const bones = document.querySelectorAll(".bones");
+
+for (const bone of bones) {
+  bone.classList.add("hidden");
+}
+
+document.querySelectorAll(".add-bone").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const animationItem = btn.closest(".animation");
+
+    const bonesContainer = animationItem.querySelector(".bones");
+    const addBtn = bonesContainer.querySelector(".add-bone");
+
+    const newBone = document.createElement("div");
+    newBone.classList.add("bone");
+    newBone.innerHTML = `
+     <div class="input-group">
+        <label>Time</label>
+        <input type="number" step="0.01" value="0" class="bone-time">
+      </div>
+      <div class="input-group">
+        <label>Bone Name</label>
+        <input type="text" name="boneName" value="">
+      </div>  
+      <div class="input-group">
+        <label>X</label>
+        <input type="number" step="0.01" value="0">
+      </div>
+      <div class="input-group">
+        <label>Y</label>
+        <input type="number" step="0.01" value="0">
+      </div>
+      <div class="input-group">
+        <label>Z</label>
+        <input type="number" step="0.01" value="0">
+      </div>
+      <button type="button" class="remove-bone">✖</button>
+    `;
+
+    bonesContainer.insertBefore(newBone, addBtn);
+
+    newBone.querySelector(".remove-bone").addEventListener("click", () => {
+      newBone.remove();
+    });
+  });
+});
+
+const add_animation_button = document.querySelector(".add-animation");
+
+function addAnimation(containerId, data = {}) {
+  const container = document.getElementById(containerId);
+  const addAnimationBtn = container.querySelector(".add-animation");
+
+  const animation = document.createElement("div");
+  animation.classList.add("animation");
+
+  animation.innerHTML = `
+    <div class="animation-header">
+      <span class="arrow" tabindex="0">▸</span>
+      <input type="text" placeholder="title" value="${data.name || ""}">
+      <select>
+        <option value="talking" ${
+          data.type === "talking" ? "selected" : ""
+        }>talking</option>
+        <option value="idle" ${
+          data.type === "idle" ? "selected" : ""
+        }>idle</option>
+      </select>
+      <button type="button" class="remove">✖</button>
+    </div>
+
+    <div class="bones hidden">
+      <button type="button" class="add-bone">＋ Add Bone</button>
+    </div>
+  `;
+
+  container.insertBefore(animation, addAnimationBtn);
+
+  const arrow = animation.querySelector(".arrow");
+  const bonesContainer = animation.querySelector(".bones");
+
+  arrow.addEventListener("click", () => {
+    arrow.classList.toggle("open");
+    bonesContainer.classList.toggle(
+      "hidden",
+      !arrow.classList.contains("open")
+    );
+  });
+
+  animation.querySelector(".remove").addEventListener("click", () => {
+    animation.remove();
+  });
+
+  if (Array.isArray(data.spec)) {
+    data.spec.forEach((spec) => {
+      spec.keyframes.forEach((keyframe) => {
+        createBone(bonesContainer, {
+          bone: spec.bone,
+          time: keyframe.time,
+          value: keyframe.value,
+        });
+      });
+    });
+  }
+
+  // Add bone button
+  const addBoneBtn = bonesContainer.querySelector(".add-bone");
+  addBoneBtn.addEventListener("click", () => {
+    createBone(bonesContainer);
+  });
+}
+
+function createBone(container, data = {}) {
+  const addBoneBtn = container.querySelector(".add-bone");
+
+  const bone = document.createElement("div");
+  bone.classList.add("bone");
+
+  bone.innerHTML = `
+    <div class="input-group">
+      <label>Time</label>
+      <input type="number" step="0.1" value="${
+        data.time ?? 0
+      }" class="bone-time">
+    </div>
+
+    <div class="input-group">
+      <label>Bone Name</label>
+      <input type="text" value="${data.bone || ""}">
+    </div>
+
+    <div class="input-group">
+      <label>X</label>
+      <input type="number" step="0.01" value="${data.value?.[0] ?? 0}">
+    </div>
+
+    <div class="input-group">
+      <label>Y</label>
+      <input type="number" step="0.01" value="${data.value?.[1] ?? 0}">
+    </div>
+
+    <div class="input-group">
+      <label>Z</label>
+      <input type="number" step="0.01" value="${data.value?.[2] ?? 0}">
+    </div>
+
+    <button type="button" class="remove-bone">✖</button>
+  `;
+
+  container.insertBefore(bone, addBoneBtn);
+
+  bone.querySelector(".remove-bone").addEventListener("click", () => {
+    bone.remove();
+  });
+}
+
+add_animation_button.addEventListener("click", () => {
+  addAnimation("animations");
 });
 
 const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -270,15 +523,12 @@ setupVerifyButtons();
 
 async function load_default_models() {
   try {
-    // 1. Get the VRM file list
     const vrmRes = await fetch("/api/load_vrm_models");
     const vrmData = await vrmRes.json();
 
-    // 2. Get the current settings
     const settingsRes = await fetch("http://127.0.0.1:5000/api/load_settings");
     const settingsData = await settingsRes.json();
 
-    // 3. Extract the saved filename
     const savedFileName = settingsData.defaultModelUrl
       ? settingsData.defaultModelUrl.split("/").pop()
       : "";
@@ -291,8 +541,6 @@ async function load_default_models() {
         poseStatus: isSelected ? "selected" : "idle",
       };
     });
-
-    // console.log("Internal load with selection:", default_models);
 
     renderModels();
   } catch (error) {

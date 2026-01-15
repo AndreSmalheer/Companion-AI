@@ -37,7 +37,11 @@ def load_settings():
     with open(os.path.join(BASE_DIR, "config.json"), 'r') as file:
         data = json.load(file)
 
+    with open(os.path.join(BASE_DIR, "public", "assets", "animations.json"), 'r') as file:
+        animation_data = json.load(file) 
+
     SETTINGS_DATA = {
+        "animations_data": animation_data,
         "piperUrl": data.get("piperUrl"),
         "defaultModelUrl": data.get("defaultModelUrl"),
         "animationUrls": data.get("animationUrls"),
@@ -95,6 +99,19 @@ def get_animation_json():
 
 @app.route('/api/update_settings', methods=['POST'])
 def update_settings():
+    if "animations" in request.form:
+        animations_str = request.form.get("animations", "[]")
+    
+        try:
+            animations = json.loads(animations_str)
+        except json.JSONDecodeError:
+            return jsonify({"error": "Invalid JSON for animations"}), 400
+        
+        animations_file = os.path.join(BASE_DIR, "public", "assets", "animations.json")
+        with open(animations_file, "w") as f:
+            json.dump(animations, f, indent=2)
+
+
     PIPERURL = request.form.get('PIPER_URL')
     DEFAULT_MODEL_URL = request.form.get('defaultModelUrl')
     ANIMATIONS_URLS = request.form.getlist('animationUrls')
