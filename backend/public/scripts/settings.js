@@ -345,7 +345,6 @@ function updateUI(settings) {
     electronUrl: settings.ELECTRON_URL,
     defaultModelUrl: settings.defaultModelUrl,
     defaultPose: settings.defaultPose,
-    blinkDuration: settings.blinkDuration,
     textAnimationSpeedMs: settings.textAnimationSpeedMs,
     ttsMinBuffer: settings.ttsMinBuffer,
     lightColor: settings.light_color,

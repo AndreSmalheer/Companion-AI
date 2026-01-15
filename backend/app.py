@@ -47,7 +47,6 @@ def load_settings():
         "animationUrls": data.get("animationUrls"),
         "eyeTrackingEnabled": data.get("eyeTrackingEnabled"),
         "blink": data.get("blink"),
-        "blinkDuration": data.get("blinkDuration"),
         "ollama": {
             "ollamaUrl": data.get("ollama", {}).get("ollamaUrl"),
             "ollamaModel": data.get("ollama", {}).get("ollamaModel"),
@@ -151,7 +150,6 @@ def update_settings():
         "animationUrls": ANIMATIONS_URLS,
         "eyeTrackingEnabled": EYE_TRACKING,
         "blink": BLINK,
-        "blinkDuration": to_float(request.form.get('blinkDuration')),
         "ollama": {
             "ollamaUrl": request.form.get('OLLAMA_URL'),
             "ollamaModel": request.form.get('OLLAMA_MODEL'),
