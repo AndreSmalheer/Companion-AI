@@ -5,6 +5,7 @@ let blink = config.blink;
 let blinkStartTime = 0;
 let isBlinking = false;
 let nextBlinkTime = 0;
+let blinkDuration = 0.1;
 
 export function updateBlink(vrm, clock) {
   if (!blink) return;
@@ -14,7 +15,6 @@ export function updateBlink(vrm, clock) {
   if (!isBlinking && time > nextBlinkTime) {
     isBlinking = true;
     blinkStartTime = time;
-    let blinkDuration = 0.05 + Math.random() * 0.1;
     nextBlinkTime = time + 1 + Math.random() * 3;
   }
   let blinkValue = 0;
